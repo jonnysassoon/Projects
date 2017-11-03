@@ -1,6 +1,6 @@
 /*
 Author: Jonathan Sassoon
-Name of Program: Conway's Game of Life
+Program: Conway's Game of Life
 This program accepts an input file of a given format and runs Conway's Game of Life
 on that file
 */
