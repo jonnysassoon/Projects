@@ -7,5 +7,5 @@ algorithms directory corresponding to that data type. Scroll through
 the implementation to see some of these methods.
 
 # Requirements
-Python files require an interpreter >= Python 3
+Python files require an interpreter >= Python 3;
 C++ files require a compiler >= c++11
