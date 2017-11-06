@@ -1,7 +1,7 @@
 """
 Author: Jonny Sassoon
 Program: MidStack
-Implementation of MidStack traditional stack, but you can push into the middle of the
+Implementation of MidStack: traditional stack, but you can push into the middle of the
 stack as well as onto the top
 """
 from DoubleEndedQueue import ArrayDeque
