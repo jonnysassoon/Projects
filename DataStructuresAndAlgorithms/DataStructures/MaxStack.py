@@ -1,7 +1,7 @@
 """
 Author: Jonny Sassoon
 Program: MaxStack
-Implementaiton of MaxStack, traditional stack but you have constant access
+Implementaiton of MaxStack: traditional stack but you have constant access
 to the element with the highest value in the stack at any time
 """
 from DataStructures.ArrayStack import ArrayStack

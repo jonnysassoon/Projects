@@ -1,7 +1,7 @@
 """
 Author: Jonny Sassoon
 Program: Royal Flush
-This program simulates rounds of poker and continues to deal until
+This program simulates rounds of Texas HoldEm and continues to deal until
 a player lands a Royal Flush
 """
 from DataStructures.ArrayStack import ArrayStack

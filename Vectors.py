@@ -1,7 +1,7 @@
 """
 Author: Jonny Sassoon
 Program: Vector Class
-This class is a mathematical vector that suports indexing, assignment, and vector math
+This class implements a mathematical vector that suports indexing, assignment, and vector math
 """
 class Vector:
 	def __init__(self, d):
