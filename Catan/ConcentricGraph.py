@@ -101,14 +101,6 @@ self.height---> \__/
               # just give its corresponding value from the first half
             return int(self.nodes_on_level(fabs(4 * self.layers + 2 - level)))
 
-    def level_of_node(self, node):
-        layer = 0
-        previous_nodes = 0
-        while previous_nodes < node:
-            previous_nodes += self.nodes_on_level(layer)
-            layer += 1
-        return layer - 1
-
     def max_nodes_on_level(self):
         """
         :return: maximum number of nodes that will be on any of the levels
