@@ -20,7 +20,7 @@ from math import fabs
 class ConcentricGraph:
     def __init__(self, layers = 0):
         self.layers = layers
-        self.height = 3 + 4 * self.layers # SEE: self.nodes_on_level
+        self.height = 3 + 4 * self.layers # SEE: self.nodes_on_level(level)
 
     def exterior_nodes(self):
         """
