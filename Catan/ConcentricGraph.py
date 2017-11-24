@@ -31,7 +31,7 @@ class ConcentricGraph:
             return 6
         return 12*self.layers + 6
 
-    def total_nodes(self): #TODO: I don't like that this is O(n), try to find O(1) equation
+    def total_nodes(self): #TODO: I don't like that this is O(n), try to find O(1) equation. Is this possible?
         """
         :return: number of total nodes
         """
@@ -120,3 +120,29 @@ self.height---> \__/
         if level == 0:
             return 0
         return self.nodes_on_level(level-1) + self.nodes_before(level-1)
+
+    def degree_two_gen(self, n):
+        if n == 0:
+            for i in range(1,7):
+                yield i
+        elif n > 0:
+            start_node = self._total_nodes_helper(n-1) + 1
+            set = [2 for i in range(n)] + [1]
+            for i in range(len(set)): # first do an abridged set leaving out first two step
+                if i == 0:
+                    start_node += 1
+                    yield start_node
+                else:
+                    start_node += set[i]
+                    yield start_node
+            for i in range(5): # need to go over the set 5 times for each side of the hexagonal graph
+                for jump in set:
+                    start_node += jump
+                    yield start_node
+
+CG = ConcentricGraph(3)
+degree_twos = []
+for nodeNum in CG.degree_two_gen(3):
+    degree_twos.append(nodeNum)
+
+print(degree_twos)
