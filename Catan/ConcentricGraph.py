@@ -139,10 +139,3 @@ self.height---> \__/
                 for jump in set:
                     start_node += jump
                     yield start_node
-
-CG = ConcentricGraph(3)
-degree_twos = []
-for nodeNum in CG.degree_two_gen(3):
-    degree_twos.append(nodeNum)
-
-print(degree_twos)
