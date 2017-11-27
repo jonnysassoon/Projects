@@ -16,20 +16,25 @@ This program contains several equations that define certain key properties of a 
 centered at C6.
 """
 from math import fabs
+from sets import Set
 
 class ConcentricGraph:
     def __init__(self, layers = 0):
         self.layers = layers
         self.height = 3 + 4 * self.layers # SEE: self.nodes_on_level(level)
+        self.adjacency_list = self.create_board()
 
-    def exterior_nodes(self):
+    def display(self):
+        print(self.adjacency_list)
+
+    def exterior_nodes(self, n):
         """
         An exterior node is any node that adjacent to two exterior edges
         :return: number of exterior nodes
         """
-        if self.layers == 0:
+        if n == 0:
             return 6
-        return 12*self.layers + 6
+        return 12*n + 6
 
     def total_nodes(self): #TODO: I don't like that this is O(n), try to find O(1) equation. Is this possible?
         """
@@ -139,3 +144,42 @@ self.height---> \__/
                 for jump in set:
                     start_node += jump
                     yield start_node
+
+    def create_board(self):
+        board = dict()
+        curr_layer = 0
+        first_in_layer = 1
+        nodes_after_layer = 6
+        two_deg_in_prev = 1
+        degree_two_nodes = Set()
+        last_third_degree = None
+        for i in range(1, self.total_nodes() + 1):
+            if i == nodes_after_layer + 1: #we're in a new layer, need to reset some stuff
+                curr_layer += 1
+                if i != 7:
+                    two_deg_in_prev = first_in_layer + 1 # assign this before moving on
+                first_in_layer = nodes_after_layer + 1
+                nodes_after_layer += self.exterior_nodes(curr_layer)
+                degree_two_nodes = Set()
+                last_third_degree = None
+            if len(degree_two_nodes) == 0:
+                for num in self.degree_two_gen(curr_layer):
+                    degree_two_nodes.add(num)
+            board[i] = []
+            if i > 1:
+                board[i].append(i-1)
+                board[i-1].append(i)
+            if i == nodes_after_layer:
+                board[i].append(first_in_layer)
+                board[first_in_layer].append(i)
+            if i not in degree_two_nodes and i != first_in_layer: # if i is supposed to be a third degree node
+                if last_third_degree != None:
+                    jump = i - last_third_degree
+                    two_deg_in_prev += 4-jump
+                board[i].append(two_deg_in_prev)
+                board[two_deg_in_prev].append(i)
+                last_third_degree = i
+        return board
+
+graph = ConcentricGraph(2)
+graph.display()
