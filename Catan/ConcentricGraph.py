@@ -145,7 +145,7 @@ self.height---> \__/
                     start_node += jump
                     yield start_node
 
-    def create_board(self):
+    def create_board(self): # TODO: clean this up a bit, it's kind of clunky
         board = dict()
         curr_layer = 0
         first_in_layer = 1
@@ -154,10 +154,10 @@ self.height---> \__/
         degree_two_nodes = Set()
         last_third_degree = None
         for i in range(1, self.total_nodes() + 1):
-            if i == nodes_after_layer + 1: #we're in a new layer, need to reset some stuff
+            if i == nodes_after_layer + 1: # we're in a new layer, need to reset some stuff
                 curr_layer += 1
-                if i != 7:
-                    two_deg_in_prev = first_in_layer + 1 # assign this before moving on
+                if i != 7: # if it does == 7, we just want to keep it as 1 - first degree 2 node in 0th layer
+                    two_deg_in_prev = first_in_layer + 1 # assign this before readjusting what the val of first in new layer is
                 first_in_layer = nodes_after_layer + 1
                 nodes_after_layer += self.exterior_nodes(curr_layer)
                 degree_two_nodes = Set()
@@ -181,5 +181,5 @@ self.height---> \__/
                 last_third_degree = i
         return board
 
-graph = ConcentricGraph(2)
+graph = ConcentricGraph(1)
 graph.display()
