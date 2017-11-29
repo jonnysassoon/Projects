@@ -18,6 +18,14 @@ namespace Catan{
         create_board();
     }
     
+    Board::~Board() {
+        for (size_t nodeNum = 1; nodeNum <= adj_list.size(); nodeNum++){
+            unordered_map<Node*, std::vector<Node*>>& neighbor_list = adj_list[nodeNum];
+            neighbor_list.begin()->second.clear(); // this won't be a memory leak because we will have deleted all of the nodes as keys
+            delete neighbor_list.begin()->first;
+        }
+    }
+    
     void Board::add_adjacencies(int node1_id, int node2_id){
         Node* node1 = adj_list[node1_id].begin()->first;
         Node* node2 = adj_list[node2_id].begin()->first;
@@ -82,7 +90,7 @@ namespace Catan{
     
     ostream& operator<<(ostream& os, Board& rhs) {
         for (size_t nodeNum = 1; nodeNum <= rhs.adj_list.size(); nodeNum++){
-            unordered_map<Node*, std::vector<Node*>> neighbor_list = rhs.adj_list[nodeNum];
+            const unordered_map<Node*, std::vector<Node*>>& neighbor_list = rhs.adj_list[nodeNum];
             cout << neighbor_list.begin()->first->int_id << ": [";
             for (size_t i = 0; i < neighbor_list.begin()->second.size(); i++) {
                 cout << neighbor_list.begin()->second[i]->int_id;

@@ -260,6 +260,7 @@
 				47BDD5141FCC9FDC00EF3B07 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

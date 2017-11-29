@@ -19,7 +19,7 @@ namespace Catan{
         friend std::ostream& operator<<(std::ostream& os, Board& rhs);
     public:
         Board(int layer = 2);
-//        ~Board();
+        ~Board();
     private:
         void create_board();
         void create_adj_lst();
@@ -38,7 +38,7 @@ namespace Catan{
     
     struct Node {
         Node(int int_id);
-        ~Node();
+//        ~Node();
         int int_id;
         std::vector<Edge*> adj_edges;
     };
