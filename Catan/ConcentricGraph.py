@@ -28,12 +28,12 @@ class ConcentricGraph:
     def display(self):
         print(self.board)
 
-    def exterior_nodes(self, n):
+    def exterior_nodes(self):
         """
         An exterior node is any node that adjacent to two exterior edges
         :return: number of exterior nodes
         """
-        return 12*n + 6
+        return 12*self.layers + 6
 
     def total_nodes(self): #TODO: I don't like that this is O(n), try to find O(1) equation. Is this possible?
         """
@@ -51,8 +51,6 @@ class ConcentricGraph:
         An exterior edge connects to at least one node such that deg(node) = 2
         :return: number of exterior edges
         """
-        if self.layers == 0:
-            return 6
         return 12*self.layers + 6
 
     def total_edges(self): #TODO: I don't like that this is O(n), try to find O(1) equation
@@ -95,7 +93,6 @@ self.height---> \__/
         :return: total number of nodes that lie on the level
         """
         if level < 0 or level > self.height-1: # out of bounds
-            print(level)
             raise ValueError("Level not in range.")
         if level < self.layers:
             return 2 * (level + 1)
@@ -135,10 +132,9 @@ self.height---> \__/
             for i in range(len(set)): # first do an abridged set leaving out first two step
                 if i == 0:
                     start_node += 1
-                    yield start_node
                 else:
                     start_node += set[i]
-                    yield start_node
+                yield start_node
             for i in range(5): # need to go over the set 5 times for each side of the hexagonal graph
                 for jump in set:
                     start_node += jump
@@ -162,7 +158,7 @@ self.height---> \__/
                 if i != 7: # if it does == 7, we just want to keep it as 1 - the first degree 2 node in 0th layer
                     two_deg_in_prev = first_in_layer + 1 # assign this before readjusting what the val of first in new layer is
                 first_in_layer = nodes_after_layer + 1
-                nodes_after_layer += self.exterior_nodes(curr_layer)
+                nodes_after_layer += 12*curr_layer + 6
                 degree_two_nodes = Set()
                 for num in self.degree_two_gen(curr_layer):
                     degree_two_nodes.add(num)
@@ -180,4 +176,4 @@ self.height---> \__/
 
 
 graph = ConcentricGraph(2)
-graph.display()
+print(graph.exterior_tiles())
