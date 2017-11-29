@@ -20,7 +20,7 @@ namespace Catan{
     public:
         Board(int layer = 2);
 //        ~Board();
-//    private:
+    private:
         void create_board();
         void create_adj_lst();
         void add_adjacencies(int node1_id, int node2_id); // adds node1 to node2's adj_lst and vice versa

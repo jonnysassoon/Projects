@@ -10,8 +10,8 @@
 using namespace std;
 
 namespace Catan{
-    class Node;
-    class Tile;
+    struct Node;
+    struct Tile;
     
     
     Board::Board(int layer) : ConcentricGraph(layer){
