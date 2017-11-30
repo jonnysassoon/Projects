@@ -36,7 +36,7 @@ namespace Catan{
     
     std::ostream& operator<<(std::ostream& os, const Edge& rhs);
     
-    struct Node {
+    struct Node { // TODO: turn into class, and add necessary getters/setters
         Node(int int_id);
 //        ~Node();
         int int_id;

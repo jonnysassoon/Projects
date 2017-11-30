@@ -26,11 +26,11 @@
 
 /* Begin PBXFileReference section */
 		47BDD50B1FCC9FDC00EF3B07 /* Catan */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = Catan; sourceTree = BUILT_PRODUCTS_DIR; };
-		47BDD50E1FCC9FDC00EF3B07 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
-		47BDD5151FCCA00500EF3B07 /* Board.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Board.cpp; sourceTree = "<group>"; };
-		47BDD5181FCCB89100EF3B07 /* ConcentricGraph.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ConcentricGraph.h; sourceTree = "<group>"; };
-		47BDD5191FCCB94200EF3B07 /* ConcentricGraph.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ConcentricGraph.cpp; sourceTree = "<group>"; };
-		47BDD51C1FCCBC6B00EF3B07 /* Board.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Board.h; sourceTree = "<group>"; };
+		47BDD50E1FCC9FDC00EF3B07 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = main.cpp; path = /Users/jonathansassoon/Projects/Catan/main.cpp; sourceTree = "<absolute>"; };
+		47BDD5151FCCA00500EF3B07 /* Board.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Board.cpp; path = /Users/jonathansassoon/Projects/Catan/Board.cpp; sourceTree = "<absolute>"; };
+		47BDD5181FCCB89100EF3B07 /* ConcentricGraph.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = ConcentricGraph.h; path = /Users/jonathansassoon/Projects/Catan/ConcentricGraph.h; sourceTree = "<absolute>"; };
+		47BDD5191FCCB94200EF3B07 /* ConcentricGraph.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ConcentricGraph.cpp; path = /Users/jonathansassoon/Projects/Catan/ConcentricGraph.cpp; sourceTree = "<absolute>"; };
+		47BDD51C1FCCBC6B00EF3B07 /* Board.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Board.h; path = /Users/jonathansassoon/Projects/Catan/Board.h; sourceTree = "<absolute>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */

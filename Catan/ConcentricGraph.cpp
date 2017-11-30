@@ -68,6 +68,6 @@ namespace Catan{
     }
     int ConcentricGraph::total_tiles_helper(int n) const {
         if (n == 0) return 1;
-        return total_edges_helper(n-1) + 6*n;
+        return total_tiles_helper(n-1) + 6*n;
     }
 }
