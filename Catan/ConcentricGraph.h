@@ -20,28 +20,34 @@
 #ifndef ConcentricGraph_h
 #define ConcentricGraph_h
 
+#include <vector>
 #include <unordered_set>
+#include <unordered_map>
 
 namespace Catan{
+    
     class ConcentricGraph {
     public:
         ConcentricGraph(int layers);
         int exterior_nodes() const;
-        int total_nodes() const;
+        int total_nodes() const; // gets nodes
         int exterior_edges() const;
-        int total_edges() const;
+        int total_edges() const; // gets edges
         int exterior_tiles() const;
-        int total_tiles() const;
+        int total_tiles() const; // gets tiles
         int nodes_on_level(int level) const;
         int max_on_level() const;
         int levels_with_max() const;
         std::unordered_set<int> second_degree_nodes(int layer) const;
     private:
-        int total_nodes_helper(int n) const;
-        int total_edges_helper(int n) const;
-        int total_tiles_helper(int n) const;
+        int nodes_helper(int n) const;
+        int edges_helper(int n) const;
+        int tiles_helper(int n) const;
         int layers;
-        int height = 3 + 4 * layers;
+        int height;
+        int nodes; // add nodes as data members so you have O(1) access
+        int edges; // add edges as data member so you have O(1) access
+        int tiles; // add tiles as data member so you have O(1) access
     };
 }
 

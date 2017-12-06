@@ -9,14 +9,11 @@
 #include "ConcentricGraph.h"
 #include "Board.h"
 #include <iostream>
-//#include <vector>
-//#include <math.h>
-//#include <unordered_set>
 using namespace std;
 using namespace Catan;
 
 int main() {
     Board b;
-    cout << b << endl;
+    b.display();
     return 0;
 }
