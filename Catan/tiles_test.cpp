@@ -22,7 +22,7 @@ public:
 	void add_node_to_tile(int tile_num, int node_num) {
 		tiles_map[tile_num].push_back(node_num);
 	}
-	void generate_tiles() {
+	void generate_tiles() { //TODO: for each new tile, give it a number tile. check for adjacent 6's and 8's
 		int curr_layer = 1;
 		int first_in_prev = 1;
 		int last_in_prev = 6;
@@ -32,7 +32,7 @@ public:
 		int total_in_prev = 6;
 		int first_tile_in_curr = 2;
 		int tiles_in_layer = 7;
-		int set_counter = 0;
+		int set_counter = 0; // keeps track of your "location" in the set perscribing how many nodes you should add to the tile from each layer
 		for (int tile_num = 1; tile_num < total_tiles() + 1; tile_num++){
 			vector<int> links;
 			tiles_map.emplace(tile_num, links);
