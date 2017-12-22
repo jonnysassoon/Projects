@@ -14,13 +14,13 @@ using namespace std;
 
 namespace Catan{
     ConcentricGraph::ConcentricGraph(int layers) : layers(layers), height(3+4*layers), nodes(nodes_helper(layers)), edges(edges_helper(layers)), tiles(tiles_helper(layers)) { }
-    int ConcentricGraph::exterior_nodes() const { return 12 * layers + 6; }
+    int ConcentricGraph::nodes_in_layer(int layer) const { return 12 * layer + 6; }
     int ConcentricGraph::total_nodes() const { return nodes; }
-    int ConcentricGraph::exterior_edges() const { return 12*layers + 6; }
+    int ConcentricGraph::edges_in_layer(int layer) const { return 12 * layer + 6; }
     int ConcentricGraph::total_edges() const { return edges; }
-    int ConcentricGraph::exterior_tiles() const {
-        if (layers == 0) return 1;
-        return 6*layers;
+    int ConcentricGraph::tiles_in_layer(int layer) const {
+        if (layer == 0) return 1;
+        return 6*layer;
     }
     int ConcentricGraph::total_tiles() const { return tiles; }
     int ConcentricGraph::nodes_on_level(int level) const { // not sure i need this function

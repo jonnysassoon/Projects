@@ -29,13 +29,13 @@ namespace Catan{
     class ConcentricGraph {
     public:
         ConcentricGraph(int layers);
-        int exterior_nodes() const;
+        int nodes_in_layer(int layer) const;
         int total_nodes() const; // gets nodes
-        int exterior_edges() const;
+        int edges_in_layer(int layer) const;
         int total_edges() const; // gets edges
-        int exterior_tiles() const;
+        int tiles_in_layer(int layer) const;
         int total_tiles() const; // gets tiles
-        int nodes_on_level(int level) const;
+        int nodes_on_level(int level) const; // never used in Catan implementation, just for mathematical analysis
         int max_on_level() const;
         int levels_with_max() const;
         std::unordered_set<int> second_degree_nodes(int layer) const;
@@ -45,9 +45,9 @@ namespace Catan{
         int tiles_helper(int n) const;
         int layers;
         int height;
-        int nodes; // add nodes as data members so you have O(1) access
-        int edges; // add edges as data member so you have O(1) access
-        int tiles; // add tiles as data member so you have O(1) access
+        int nodes;
+        int edges;
+        int tiles;
     };
 }
 
