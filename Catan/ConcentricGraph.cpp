@@ -41,7 +41,7 @@ namespace Catan{
             vector<int> group(layer, 2);
             group.push_back(1);
             for (int i = 0; i < group.size(); i++){
-                if (i == 0) start_node += 1; // instead of jumping to, just jump one to start
+                if (i == 0) start_node += 1; // instead of jumping two, just jump one to start
                 else start_node += group[i];
                 set.insert(start_node);
             }
