@@ -27,8 +27,8 @@ namespace Catan{
         if (level < 0 || level > height-1){ // out of bounds
             cerr << "Level not in range.\n";
         }
-        if (level < layers) return 2 * (level + 1);
-        if (layers <= level && level <= (3 + 4 * layers) / 2) return int(2 * (layers + 1));
+        else if (level < layers) return 2 * (level + 1);
+        else if (layers <= level && level <= (3 + 4 * layers) / 2) return int(2 * (layers + 1));
         return nodes_on_level(abs(4 * layers + 2 - level));
     }
     int ConcentricGraph::max_on_level() const { return 2*layers + 2; }
