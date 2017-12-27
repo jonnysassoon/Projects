@@ -62,12 +62,12 @@ namespace Catan{
         int first_in_layer = 1;
         int nodes_after_layer = 6;
         int two_deg_in_prev = 1; // keeps track of the current 2nd degree node from the previous layer that we will need to link to its corresponding third degree node in curr_layer
-        unordered_set<int> degree_two_nodes = second_degree_nodes(0);
+        set<int> degree_two_nodes = second_degree_nodes(0);
         Node* last_third_degree = nullptr;
         int previous_node = 1;
         for (int idNum = 1; idNum <= total_nodes(); idNum++){
             Node* thisNode = new Node(idNum);
-            unordered_set<Node*> neighbors;
+            set<Node*> neighbors;
             nodes_map.emplace(idNum, thisNode);
             if (idNum == nodes_after_layer+1) { // we're in a new layer of the board, need to reset values
                 curr_layer += 1;
@@ -114,7 +114,7 @@ namespace Catan{
         shuffle(num_tiles.begin(), num_tiles.end(), default_random_engine(seed));
         shuffle(types.begin(), types.end(), default_random_engine(seed));
         // TODO: utilize the methods in ConcentricGraph to reduce the number of tracker variables
-        // TODO: reduce the code...
+        // TODO: is this over engineering? see if I can reduce the code...
         /* Tracker variables for Tile-Node links: */
         int currLayer = 0;
         int firstNodeInPrev = 0; // TODO: should be able to use a ConcentricGraph method instead of variable. reference to the first node in the previous layer
@@ -154,6 +154,7 @@ namespace Catan{
             if (tile_id == 1) {
                 for (int i = 1; i < 7; i++) add_node_to_tile(thisTile, i);
             } else{
+                /* Tile - Node component */
                 for (int i = 0; i < 2; i++) { // every tile has >= 3 nodes from n-1 in their adj_nodes. for two of these, we need to decrement nodeInCurr
                     add_node_to_tile(thisTile, nodeInCurr);
                     nodeInCurr--;
@@ -173,6 +174,7 @@ namespace Catan{
                     add_node_to_tile(thisTile, nodeInPrev);
                 }
                 setCounter++;
+                /* Tile - Tile component */
                 if (tile_id != firstTileInCurr) link_tiles(*thisTile, *tiles_map[prevTile]); // you don't do this if it's the first in curr because it isn't adjacent to the previous tile (8 does not border 7, etc.), it's equivalent "previous" tile is the inPrevLayer tile (8 links to 2)
                 link_tiles(*thisTile, *tiles_map[inPrevLayer]);
                 if (connectionTicker % 2 != 0){
@@ -217,7 +219,7 @@ namespace Catan{
     }
     
     ostream& operator<<(ostream& os, const Board::Tile& rhs) {
-        const unordered_set<Board::Node*>& nodes_set = rhs.adj_nodes;
+        const set<Board::Node*>& nodes_set = rhs.adj_nodes;
         int iter = 0;
         os << "Nodes:[";
         for (Board::Node* nodeptr : nodes_set) {
@@ -226,7 +228,7 @@ namespace Catan{
             iter++;
         }
         os << "], Tiles:[";
-        const unordered_set<Board::Tile*>& tiles_set = rhs.adj_tiles;
+        const set<Board::Tile*>& tiles_set = rhs.adj_tiles;
         iter = 0;
         for (Board::Tile* tileptr: tiles_set){
             os << tileptr->int_id;

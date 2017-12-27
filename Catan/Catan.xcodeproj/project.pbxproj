@@ -10,8 +10,6 @@
 		47BDD50F1FCC9FDC00EF3B07 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 47BDD50E1FCC9FDC00EF3B07 /* main.cpp */; };
 		47BDD5171FCCA00500EF3B07 /* Board.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 47BDD5151FCCA00500EF3B07 /* Board.cpp */; };
 		47BDD51B1FCCB94200EF3B07 /* ConcentricGraph.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 47BDD5191FCCB94200EF3B07 /* ConcentricGraph.cpp */; };
-		47CA9E791FD87E6500469459 /* tiles_test2.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 47CA9E771FD87E6500469459 /* tiles_test2.cpp */; };
-		47F7A3A71FD60F6F00CEB7A4 /* test.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 47F7A3A51FD60F6F00CEB7A4 /* test.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -33,9 +31,7 @@
 		47BDD5181FCCB89100EF3B07 /* ConcentricGraph.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = ConcentricGraph.h; path = /Users/jonathansassoon/Projects/Catan/ConcentricGraph.h; sourceTree = "<absolute>"; };
 		47BDD5191FCCB94200EF3B07 /* ConcentricGraph.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ConcentricGraph.cpp; path = /Users/jonathansassoon/Projects/Catan/ConcentricGraph.cpp; sourceTree = "<absolute>"; };
 		47BDD51C1FCCBC6B00EF3B07 /* Board.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Board.h; path = /Users/jonathansassoon/Projects/Catan/Board.h; sourceTree = "<absolute>"; };
-		47CA9E771FD87E6500469459 /* tiles_test2.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = tiles_test2.cpp; sourceTree = SOURCE_ROOT; };
 		47F7A3A41FD5DF2500CEB7A4 /* Outline.rtf */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.rtf; path = Outline.rtf; sourceTree = SOURCE_ROOT; };
-		47F7A3A51FD60F6F00CEB7A4 /* test.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = test.cpp; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -74,8 +70,6 @@
 				47BDD5181FCCB89100EF3B07 /* ConcentricGraph.h */,
 				47BDD5191FCCB94200EF3B07 /* ConcentricGraph.cpp */,
 				47F7A3A41FD5DF2500CEB7A4 /* Outline.rtf */,
-				47F7A3A51FD60F6F00CEB7A4 /* test.cpp */,
-				47CA9E771FD87E6500469459 /* tiles_test2.cpp */,
 			);
 			path = Catan;
 			sourceTree = "<group>";
@@ -139,9 +133,7 @@
 			files = (
 				47BDD5171FCCA00500EF3B07 /* Board.cpp in Sources */,
 				47BDD51B1FCCB94200EF3B07 /* ConcentricGraph.cpp in Sources */,
-				47CA9E791FD87E6500469459 /* tiles_test2.cpp in Sources */,
 				47BDD50F1FCC9FDC00EF3B07 /* main.cpp in Sources */,
-				47F7A3A71FD60F6F00CEB7A4 /* test.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

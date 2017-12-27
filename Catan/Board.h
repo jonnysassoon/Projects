@@ -28,16 +28,14 @@
 #ifndef Board_h
 #define Board_h
 #include "ConcentricGraph.h"
-#include <unordered_map>
-#include <unordered_set>
+#include <map>
+#include <set>
 #include <vector>
 #include <string>
 #include <iostream>
 
 namespace Catan{
-    
-    // TODO: change unordered_maps to maps
-    
+        
     struct Edge;
 
     struct TileType{
@@ -84,8 +82,8 @@ namespace Catan{
 //            Player* owner;
             bool has_settlement;
             bool has_city;
-            std::unordered_set<Edge*> adj_edges;
-            std::unordered_set<Node*> adj_nodes;
+            std::set<Edge*> adj_edges;
+            std::set<Node*> adj_nodes;
         };
         
         friend std::ostream& operator<<(std::ostream& os, const Board::Node& rhs);
@@ -93,7 +91,7 @@ namespace Catan{
         struct Edge {
             Edge(int int_id);
             int int_id;
-            std::unordered_set<Node*> adj_nodes;
+            std::set<Node*> adj_nodes;
         };
         
         struct Tile { // TODO: turn into class, this isn't so simple anymore. Should have data hiding
@@ -103,8 +101,8 @@ namespace Catan{
             int int_id; // unique identifier on the board
             int num_tile; // dice number
             bool blocked; // for the robber
-            std::unordered_set<Node*> adj_nodes; // set of the nodes adjacent to the tile.
-            std::unordered_set<Tile*> adj_tiles; // set of the tiles adjacent to this tile.
+            std::set<Node*> adj_nodes; // set of the nodes adjacent to the tile.
+            std::set<Tile*> adj_tiles; // set of the tiles adjacent to this tile.
             TileType* type; // mountain, field, pasture, etc...
         };
         friend std::ostream& operator<<(std::ostream& os, const Board::Tile& rhs);
@@ -121,8 +119,8 @@ namespace Catan{
         void log_tile(Tile* the_tile);
         void generate_nodes();
         void link_nodes(Node& node1, Node& node2); // adds node1 to node2's adj_lst and vice versa
-        std::unordered_map<int, Node*> nodes_map;
-        std::unordered_map<int, Tile*> tiles_map; // TODO: is there a way to efficiently access the tile(s) when the dice are rolled?
+        std::map<int, Node*> nodes_map;
+        std::map<int, Tile*> tiles_map; // TODO: is there a way to efficiently access the tile(s) when the dice are rolled?
     };
 }
 

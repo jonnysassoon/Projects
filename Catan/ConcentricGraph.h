@@ -21,8 +21,7 @@
 #define ConcentricGraph_h
 
 #include <vector>
-#include <unordered_set>
-#include <unordered_map>
+#include <set>
 
 namespace Catan{
     
@@ -38,7 +37,7 @@ namespace Catan{
         int nodes_on_level(int level) const; // never used in Catan implementation, just for mathematical analysis
         int max_on_level() const;
         int levels_with_max() const;
-        std::unordered_set<int> second_degree_nodes(int layer) const;
+        std::set<int> second_degree_nodes(int layer) const;
     private:
         int nodes_helper(int n) const;
         int edges_helper(int n) const;

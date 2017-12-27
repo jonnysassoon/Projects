@@ -7,8 +7,7 @@
 #include <iostream>
 #include <vector>
 #include <math.h>
-#include <unordered_set>
-#include <unordered_map>
+#include <set>
 
 using namespace std;
 
@@ -33,8 +32,8 @@ namespace Catan{
     }
     int ConcentricGraph::max_on_level() const { return 2*layers + 2; }
     int ConcentricGraph::levels_with_max() const { return 2 *layers + 3; }
-    unordered_set<int> ConcentricGraph::second_degree_nodes(int layer) const {
-        unordered_set<int> set;
+    set<int> ConcentricGraph::second_degree_nodes(int layer) const {
+        set<int> set;
         if (layer == 0) for (int val = 1; val < 7; val++) set.insert(val);
         else{
             int start_node = nodes_helper(layer-1) + 1; // get the node after last node in previous ring, i.e. first node in this ring
