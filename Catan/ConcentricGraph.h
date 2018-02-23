@@ -34,7 +34,7 @@ namespace Catan{
         int total_edges() const; // gets edges
         int tiles_in_layer(int layer) const;
         int total_tiles() const; // gets tiles
-        int nodes_on_level(int level) const; // never used in Catan implementation, just for mathematical analysis
+        int nodes_on_level(int level) const; // never used in Catan implementation
         int max_on_level() const;
         int levels_with_max() const;
         std::set<int> second_degree_nodes(int layer) const;

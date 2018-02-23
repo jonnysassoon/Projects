@@ -19,10 +19,11 @@
 //     \_/
 // 
 // Numbers represent the tile IDs where a - j represent numbers 10 - 19. Node 1 is at the top left
-// vertex of hex-1 with two being adjacent to it to the right. The node ids continue incrementing as you
+// vertex of hex-1 with Node 2 being adjacent to it to the right. The node ids continue incrementing as you
 // go clockwise around that layer. When we get to 6 (middle left vertex of hex-1), node 7 is immeditaley
-// to its left (top left vertex of hex-2). The pattern continues for all nodes in the board.
-// 
+// to its left (top left vertex of hex-2). The pattern continues for all nodes in the board. The Edges are
+// made as nodes are connected. As such, the numbering system for the edges follows the order of nodes being
+// added to another nodes adjacency list (see implementation for generate_nodes())
 
 
 #ifndef Board_h
@@ -35,7 +36,11 @@
 #include <iostream>
 
 namespace Catan{
-        
+    class Player;
+    class Settlement;
+    class City;
+    class Knight;
+    
     struct Edge;
 
     struct TileType{
@@ -76,12 +81,10 @@ namespace Catan{
     class Board : public ConcentricGraph {
         struct Node {
             Node(int int_id);
-//            ~Node(); if I have a destructor for the board that deletes all the Tiles and Nodes, is this necessary?
             int int_id;
-//            Knight* knight;
-//            Player* owner;
-            bool has_settlement;
-            bool has_city;
+            Knight* knight;
+            Settlement* settlement;
+            City* city;
             std::set<Edge*> adj_edges;
             std::set<Node*> adj_nodes;
         };
@@ -91,15 +94,14 @@ namespace Catan{
         struct Edge {
             Edge(int int_id);
             int int_id;
+            
             std::set<Node*> adj_nodes;
         };
         
-        struct Tile { // TODO: turn into class, this isn't so simple anymore. Should have data hiding
+        struct Tile {
             Tile(int int_id, TileType* type);
-//            ~Tile(); if I have a destructor for the board that deletes all the Tiles and Nodes, is this necessary?
-            void give_resources() const;
             int int_id; // unique identifier on the board
-            int num_tile; // dice number
+            int num_tile; // dice number.
             bool blocked; // for the robber
             std::set<Node*> adj_nodes; // set of the nodes adjacent to the tile.
             std::set<Tile*> adj_tiles; // set of the tiles adjacent to this tile.
@@ -118,9 +120,11 @@ namespace Catan{
         void give_num_tile(Tile* the_tile, std::vector<int>& tiles_vec);
         void log_tile(Tile* the_tile);
         void generate_nodes();
-        void link_nodes(Node& node1, Node& node2); // adds node1 to node2's adj_lst and vice versa
+        void link_nodes(int& edge_id, Node& node1, Node& node2); // adds node1 to node2's adj_lst and vice versa
         std::map<int, Node*> nodes_map;
         std::map<int, Tile*> tiles_map; // TODO: is there a way to efficiently access the tile(s) when the dice are rolled?
+        std::map<int, Player*> city_locs; // location of all the cities with their owners
+        int robberLoc;
     };
 }
 

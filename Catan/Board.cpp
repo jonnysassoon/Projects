@@ -35,10 +35,23 @@ namespace Catan{
     }
     
     Board::~Board() {
-        for (int nodeNum = 1; nodeNum <= nodes_map.size(); nodeNum++){
+        for (int nodeNum = 1; nodeNum <= total_nodes(); nodeNum++){
             Node* toDelete = nodes_map[nodeNum];
             toDelete->adj_nodes.clear(); // not memory leak because we're deleting everything
+//            for (Edge* link: toDelete->adj_edges){
+            
+//            }
+            cout << "Now deleting node " << toDelete->int_id << endl;
             delete toDelete;
+            toDelete = nullptr;
+        }
+        for (int tileNum = 1; tileNum <= total_tiles(); tileNum++) {
+            Tile* toDelete = tiles_map[tileNum];
+            toDelete->adj_nodes.clear();
+            toDelete->adj_tiles.clear();
+            cout << "Now deleting tile " << toDelete->int_id << endl;
+            delete toDelete;
+            toDelete = nullptr;
         }
     }
     
@@ -49,13 +62,21 @@ namespace Catan{
         }
         cout << "\n\nTILES MAP:\n";
         for(int tileNum = 1; tileNum <= total_tiles(); tileNum++){
-            cout << tileNum << ":{" << *tiles_map.at(tileNum) << "}\n";
+            cout << tileNum << " - " << tiles_map.at(tileNum)->type->name << ":{" << *tiles_map.at(tileNum) << "}\n";
         }
     }
-    void Board::link_nodes(Node& node1, Node& node2){
-        node1.adj_nodes.emplace(&node2);
-        node2.adj_nodes.emplace(&node1);
+    void Board::link_nodes(int& edge_id, Node& node1, Node& node2){ // TODO: why can't I add the edges?
+        Edge* edge(new Edge(edge_id));
+        cout << "Now adding edge " << edge_id << " to nodes " << node1.int_id << " and " << node2.int_id << endl;
+        node1.adj_nodes.insert(&node2);
+//        node1.adj_edges.insert(edge);
+        edge->adj_nodes.insert(&node1);
+        node2.adj_nodes.insert(&node1);
+//        node2.adj_edges.insert(edge);
+        edge->adj_nodes.insert(&node2);
+        edge_id++;
     }
+    
     // To think about: could I just do this recursively?
     void Board::generate_nodes(){ // keep track of all nodes according to their integer IDs
         int curr_layer = 0;
@@ -65,9 +86,9 @@ namespace Catan{
         set<int> degree_two_nodes = second_degree_nodes(0);
         Node* last_third_degree = nullptr;
         int previous_node = 1;
+        int edge_id = 1;
         for (int idNum = 1; idNum <= total_nodes(); idNum++){
             Node* thisNode = new Node(idNum);
-            set<Node*> neighbors;
             nodes_map.emplace(idNum, thisNode);
             if (idNum == nodes_after_layer+1) { // we're in a new layer of the board, need to reset values
                 curr_layer += 1;
@@ -78,17 +99,17 @@ namespace Catan{
                 last_third_degree = nullptr;
             }
             if (idNum > 1){ // conect current to one behind it
-                link_nodes(*thisNode, *nodes_map[previous_node]);
+                link_nodes(edge_id, *thisNode, *nodes_map[previous_node]);
                 previous_node++;
             }
-            if (idNum == nodes_after_layer) link_nodes(*thisNode, *nodes_map[first_in_layer]); // if at end of layer, conenct to first in layer
+            if (idNum == nodes_after_layer) link_nodes(edge_id, *thisNode, *nodes_map[first_in_layer]); // if at end of layer, conenct to first in layer
             if (degree_two_nodes.find(idNum) == degree_two_nodes.end() &&
                 idNum != first_in_layer) { // connect a third degree node that isn't the first node in the layer (it's already conencting to its proper node in previous layer) to its proper 2nd degree node in the previous layer
                 if (last_third_degree != nullptr) { // if it is nullptr, we didn't jump to get here
                     int jump = idNum - last_third_degree->int_id;
                     two_deg_in_prev += 4 - jump; // the sum of the jumps of the third degree nodes in curr_layer and the 2nd degree nodes in the prev layer always == 4...why?
                 }
-                link_nodes(*thisNode, *nodes_map[two_deg_in_prev]);
+                link_nodes(edge_id, *thisNode, *nodes_map[two_deg_in_prev]);
                 last_third_degree = thisNode;
             }
         }
@@ -113,21 +134,21 @@ namespace Catan{
         unsigned seed = chrono::system_clock::now().time_since_epoch().count();
         shuffle(num_tiles.begin(), num_tiles.end(), default_random_engine(seed));
         shuffle(types.begin(), types.end(), default_random_engine(seed));
-        // TODO: utilize the methods in ConcentricGraph to reduce the number of tracker variables
+        // TODO: utilize the methods in ConcentricGraph to reduce the number of variables
         // TODO: is this over engineering? see if I can reduce the code...
-        /* Tracker variables for Tile-Node links: */
+        // TODO: see if I can make separate functions addNodesToTile/addTilestoTile that could compartmentalize this function and make it cleaner
+        /* Variables for Tile-Node links: */
         int currLayer = 0;
-        int firstNodeInPrev = 0; // TODO: should be able to use a ConcentricGraph method instead of variable. reference to the first node in the previous layer
-        int lastNodeInCurr = 6; // reference to last node in curent layer
-        int firstNodeInCurr = 1; // reference to first node in the current layer
-        int totalNodesInPrev = 0; // value of total nodes in the previous layer
-        int firstTileInCurr = 1; // first tile in current layer
-        int tilesAfterCurr = 1; // changed from 7 to 1. equivalent to totTilesInCurr -> understand its initialization logic
+        int lastNodeInCurr = 6; // TODO: should be able to use a ConcentricGraph method instead of variable. reference to last node in curent layer
+        int firstNodeInCurr = 1; // TODO: should be able to use a ConcentricGraph method instead of variable. reference to first node in the current layer
+        int totalNodesInPrev = 0; // TODO: should be able to use a ConcentricGraph method instead of variable. total nodes in the previous layer
+        int firstTileInCurr = 1; // TODO: should be able to use a ConcentricGraph method instead of variable. reference to first tile in current layer
+        int tilesAfterCurr = 1; // TODO: should be able to use a ConcentricGraph method instead of variable.
         int nodeInPrev = 0; // keeps track of the node in n-1 that we want to add to nodes in n
         int nodeInCurr = 6; // node from this layer we want to add to the tile
         int setCounter = 0; // keeps track of your "location" in the set which perscribes how many nodes you should add to the tile from each layer
         
-        /* Tracker variables for Tile-Tile links: */
+        /* Variables for Tile-Tile links: */
         int prevTile = 0;
         int inPrevLayer = 0; // tile we are trying to add from the previous layer
         int connectionTicker = 0; // keeps track of where you are relative to a corner tile
@@ -136,10 +157,12 @@ namespace Catan{
             Tile* thisTile = new Tile(tile_id , types.back());
             types.pop_back();
             if (thisTile->type->name != "desert") give_num_tile(thisTile, num_tiles); // give it a number if it isn't desert hex
+            else {
+                thisTile->blocked = true; // just for consistency, doesn't make a difference
+                robberLoc = tile_id;
+            }
             if (tile_id > tilesAfterCurr) { // reset stuff
-                cout << "before resetting, the nodeInCurr was reduced to: " << nodeInCurr << endl;
                 currLayer++;
-                firstNodeInPrev = totalNodesInPrev+1; // at this point, we haven't reset total in prev, so 1 above this is the first in the layer after the layer totalNodesInPrev is referring to, which is the previous layer from the one we are in now.
                 nodeInPrev = lastNodeInCurr;
                 lastNodeInCurr += nodes_in_layer(currLayer);
                 nodeInCurr = lastNodeInCurr;
@@ -162,7 +185,7 @@ namespace Catan{
                 add_node_to_tile(thisTile, nodeInCurr); // this is the 3rd one, we just don't decrement nodeInCurr because we need to keep it the same for the next tile...
                 add_node_to_tile(thisTile, nodeInPrev);
                 nodeInPrev--;
-                if (nodeInPrev < firstNodeInPrev) nodeInPrev = totalNodesInPrev;
+                if (nodeInPrev < firstNodeInCurr - nodes_in_layer(currLayer-1)) nodeInPrev = totalNodesInPrev; // if the node in currLayer-1 goes passed the first node in currLayer-1
                 add_node_to_tile(thisTile, nodeInPrev);
                 if (tile_id == firstTileInCurr) add_node_to_tile(thisTile, firstNodeInCurr);
                 else if (setCounter % currLayer == 0) { // ...unless we are on a corner tile, which requires an additional node
@@ -170,7 +193,7 @@ namespace Catan{
                     add_node_to_tile(thisTile, nodeInCurr);
                 } else {
                     nodeInPrev--;
-                    if (nodeInPrev < firstNodeInPrev) nodeInPrev = totalNodesInPrev;
+                    if (nodeInPrev < firstNodeInCurr - nodes_in_layer(currLayer-1)) nodeInPrev = totalNodesInPrev;
                     add_node_to_tile(thisTile, nodeInPrev);
                 }
                 setCounter++;
@@ -200,9 +223,9 @@ namespace Catan{
         generate_tiles();
     }
     
-    Board::Edge::Edge(int int_id) : int_id(int_id) {}
+    Board::Edge::Edge(int int_id) : /*owner(nullptr),*/ int_id(int_id) {}
     
-    Board::Node::Node(int int_id) : int_id(int_id), /* knight(nullptr), owner(nullptr), */ has_settlement(false), has_city(false) {}
+    Board::Node::Node(int int_id) : int_id(int_id), knight(nullptr), settlement(nullptr), city(nullptr) {}
     
     Board::Tile::Tile(int int_id, TileType* type) : int_id(int_id),  blocked(false), type(type) {}
     
