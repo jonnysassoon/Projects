@@ -29,6 +29,7 @@
 #ifndef Board_h
 #define Board_h
 #include "ConcentricGraph.h"
+#include "Pieces.h"
 #include <map>
 #include <set>
 #include <vector>
@@ -37,12 +38,10 @@
 
 namespace Catan{
     class Player;
-    class Settlement;
-    class City;
-    class Knight;
+//    class Settlement;
+//    class City;
+//    class Knight;
     
-    struct Edge;
-
     struct TileType{
         TileType(std::string name, std::string resource);
         std::string name;
@@ -79,9 +78,12 @@ namespace Catan{
     };
     
     class Board : public ConcentricGraph {
+        struct Edge;
+
         struct Node {
             Node(int int_id);
             int int_id;
+            Player* owner;
             Knight* knight;
             Settlement* settlement;
             City* city;
@@ -89,12 +91,10 @@ namespace Catan{
             std::set<Node*> adj_nodes;
         };
         
-        friend std::ostream& operator<<(std::ostream& os, const Board::Node& rhs);
-        
         struct Edge {
             Edge(int int_id);
             int int_id;
-            
+            Player* owner;
             std::set<Node*> adj_nodes;
         };
         
@@ -107,11 +107,19 @@ namespace Catan{
             std::set<Tile*> adj_tiles; // set of the tiles adjacent to this tile.
             TileType* type; // mountain, field, pasture, etc...
         };
+        
+        friend std::ostream& operator<<(std::ostream& os, const Board::Node& rhs);
         friend std::ostream& operator<<(std::ostream& os, const Board::Tile& rhs);
     public:
         Board(int layer = 2);
         ~Board();
         void display() const;
+        bool isValidSetLoc(int loc, Player* player); // node loc
+        bool isValidCityLoc(int loc, Player* player); // node loc
+        bool isValidRoadLoc(int loc, Player* player); // edge loc
+        bool isValidKnightLoc(int loc, Player* player); // node loc
+        bool isValidWallLoc(int loc, Player* player); // node loc
+        bool isValidRobberLoc(int loc); // tile loc
     private:
         void create_board();
         void generate_tiles();
@@ -122,6 +130,7 @@ namespace Catan{
         void generate_nodes();
         void link_nodes(int& edge_id, Node& node1, Node& node2); // adds node1 to node2's adj_lst and vice versa
         std::map<int, Node*> nodes_map;
+        std::map<int, Edge*> edges_map;
         std::map<int, Tile*> tiles_map; // TODO: is there a way to efficiently access the tile(s) when the dice are rolled?
         std::map<int, Player*> city_locs; // location of all the cities with their owners
         int robberLoc;

@@ -15,21 +15,20 @@ namespace Catan {
     class Knight;
     class Progress;
     
-    
-    // TODO: double check - given change of implementation approach, all loc arguments may be uneccessary 
+    // TODO: double check - given change of implementation approach, all loc arguments may be uneccessary
     class Player {
     public:
         Player(const std::string& name);
         void display() const;
         std::string getName() const;
         int getCitImprovements(const std::string& type); // why can't I make this const?
-        bool buildSettlement(int loc);
-        bool buildRoad(int loc);
-        bool buildCity(int loc);
-        bool buildknight(int loc); // this only builds level 1 knights. if a player wants to build a level two knight in one move, the program will execute a buildKnight() followed by an upgradeKnight
-        bool upgradeKnight(int loc, char level);
-        bool activateKnight(int loc);
-        bool deactivateKnight(int loc);
+        bool buildSettlement();
+        bool buildRoad();
+        bool buildCity();
+        bool buildknight(); // this only builds level 1 knights. if a player wants to build a level two knight in one move, the program will execute a buildKnight() followed by an upgradeKnight
+        bool upgradeKnight(char level);
+        bool activateKnight();
+        bool deactivateKnight();
         bool moveRobber();
         bool buildCitImprove(const std::string& type);
         bool buildWall();

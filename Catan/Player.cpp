@@ -18,7 +18,7 @@ using namespace std;
     // In the game engine, there will be a prompt for their action
     // The player types the action command, say "build settlement"
     // The engine will ask where they want to place it, they enter the node id
-    // The Player::buildSettlement(int loc) method is called
+    // The Player::buildSettlement() method is called
     // If it returns true (and therefore updating all of the necessary data
     // in the players member variables), the game Engine creates a settlement
     // and places it on the board.
@@ -33,7 +33,7 @@ namespace Catan {
         knightStrength(0),
         name(name),
         // TODO: how many pieces for each category does the player start with?
-        pieces({{"settlement", 0}, {"city", 0}, {"road", 15}, {"knight1", 2}, {"knight2", 2}, {"knight1", 2}, {"wall", 0}}),
+        pieces({{"settlement", 5}, {"city", 4}, {"road", 15}, {"knight1", 2}, {"knight2", 2}, {"knight1", 2}, {"wall", 3}}),
         resources({{"sheep", 0}, {"brick", 0}, {"wheat", 0}, {"wood", 0}, {"ore", 0}, {"coin", 0}, {"paper", 0}, {"silk", 0}}),
         citImprov({{"trade", 0}, {"politics", 0}, {"science", 0}}) {}
 
@@ -47,7 +47,7 @@ namespace Catan {
         return citImprov[type];
     }
     
-    bool Player::buildSettlement(int loc) {
+    bool Player::buildSettlement() {
 //       this should be in main.cpp when the command is entered:
                 //  if (/*loc is not valid*/) return false;
         vector<string> necessary = {"sheep", "brick", "wheat", "wood"};
@@ -61,7 +61,7 @@ namespace Catan {
         return true;
     }
     
-    bool Player::buildRoad(int loc) {
+    bool Player::buildRoad() {
 //        if (/*loc is not valid*/) return false;
         vector<string> necessary = {"brick", "wood"};
         for (const string& aRes : necessary) {
@@ -73,7 +73,7 @@ namespace Catan {
         return true;
     }
     
-    bool Player::buildCity(int loc) {
+    bool Player::buildCity() {
 //        if (/*loc is not valid*/) return false;
         vector<string> necessary = {"wheat", "wheat", "ore", "ore", "ore"};
         if (resources["ore"] < 3 || resources["wheat"] < 2) return false;
@@ -85,7 +85,7 @@ namespace Catan {
         return true;
     }
     
-    bool Player::buildknight(int loc) {
+    bool Player::buildknight() {
 //        if (/*loc is not valid*/) return false;
         vector<string> necessary = {"ore", "sheep"};
         if (resources["ore"] < 1 || resources["sheep"] < 1) return false;
@@ -95,7 +95,7 @@ namespace Catan {
         return true;
     }
     
-    bool Player::upgradeKnight(int loc, char level) {
+    bool Player::upgradeKnight(char level) {
 //        if (/*loc is not valid*/) return false;
         if (level != '1' && level != '2' && level != '3') return false;
         vector<string> necessary = {"ore", "sheep"};
@@ -111,7 +111,7 @@ namespace Catan {
         return true;
     }
     
-    bool Player::activateKnight(int loc) {
+    bool Player::activateKnight() {
         // if (/*loc is not valid*/) return false;
         Knight* theKnight = nullptr; // TODO: this shouldn't be how it's implemented
         // if (already activated) return false;
@@ -124,7 +124,7 @@ namespace Catan {
         return true;
     }
     
-    bool Player::deactivateKnight(int loc) {
+    bool Player::deactivateKnight() {
         // if (/*loc is not valid*/) return false;
         Knight* theKnight = nullptr; /* = getTheKnightAtThatLocation();*/
          if (!theKnight->activated || theKnight->activeThisRound) return false;
@@ -192,10 +192,10 @@ namespace Catan {
     bool Player::buildWall() {
         vector<string> necessary{"brick", "brick"};
         if (resources["brick"] < 2) return false;
-        if (pieces["wall"])
+        if (pieces["wall"] < 1) return false;
         spend(necessary);
-        //
-        return true;
+        pieces["wall"]--;
+        return false;
     }
     
     void Player::defendCatan() { vp++; }

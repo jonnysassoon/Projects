@@ -65,14 +65,68 @@ namespace Catan{
             cout << tileNum << " - " << tiles_map.at(tileNum)->type->name << ":{" << *tiles_map.at(tileNum) << "}\n";
         }
     }
-    void Board::link_nodes(int& edge_id, Node& node1, Node& node2){ // TODO: why can't I add the edges?
+    
+    bool Board::isValidSetLoc(int loc, Player* player) {
+        Node* node = nodes_map[loc];
+        if (node->owner == nullptr) {
+            for (Node* nodptr : node->adj_nodes) {
+                if (nodptr->city != nullptr || nodptr->settlement != nullptr) return false; // of the adjacent locations, one of them is already taken with a city/settlement
+            }
+            for (Edge* edgptr : node->adj_edges) {
+                if (edgptr->owner == player) return true;
+            }
+        }
+        return false;
+    }
+    
+    bool Board::isValidCityLoc(int loc, Player* player){
+        Node* node = nodes_map[loc];
+        return node->owner == player && node->settlement != nullptr; // the node *is* owned by this player, and there *is* a settlement here
+    }
+    
+    bool Board::isValidRoadLoc(int loc, Player* player){
+        Edge* edge = edges_map[loc];
+        if (edge->owner == nullptr) { // nothing is here
+            for (Node* nodptr : edge->adj_nodes) {
+                if (nodptr->owner == player) return true; // a connecting node is owned by this player
+                if (nodptr->owner == nullptr) { // if the node is vacant, we have to check to see if it has an outgoing edge that's owned by this person
+                    for (Edge* neighborEdge : nodptr->adj_edges) {
+                        if (neighborEdge->owner == player) return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+    
+    bool Board::isValidKnightLoc(int loc, Player* player) {
+        Node* node = nodes_map[loc];
+        if (node->owner == nullptr) {
+            for (Edge* edgptr : node->adj_edges) {
+                if (edgptr->owner == player) return true;
+            }
+        }
+        return false;
+    }
+    
+    bool Board::isValidWallLoc(int loc, Player* player) {
+        Node* node = nodes_map[loc];
+        return node->city != nullptr && node->city->owner == player && node->city->wall == nullptr;
+    }
+    
+    bool Board::isValidRobberLoc(int loc) {
+        return loc != robberLoc;
+    }
+    
+    void Board::link_nodes(int& edge_id, Node& node1, Node& node2){
         Edge* edge(new Edge(edge_id));
+        edges_map[edge_id] = edge;
         cout << "Now adding edge " << edge_id << " to nodes " << node1.int_id << " and " << node2.int_id << endl;
         node1.adj_nodes.insert(&node2);
-//        node1.adj_edges.insert(edge);
+        node1.adj_edges.insert(edge);
         edge->adj_nodes.insert(&node1);
         node2.adj_nodes.insert(&node1);
-//        node2.adj_edges.insert(edge);
+        node2.adj_edges.insert(edge);
         edge->adj_nodes.insert(&node2);
         edge_id++;
     }
@@ -223,9 +277,9 @@ namespace Catan{
         generate_tiles();
     }
     
-    Board::Edge::Edge(int int_id) : /*owner(nullptr),*/ int_id(int_id) {}
+    Board::Edge::Edge(int int_id) : int_id(int_id), owner(nullptr) {}
     
-    Board::Node::Node(int int_id) : int_id(int_id), knight(nullptr), settlement(nullptr), city(nullptr) {}
+    Board::Node::Node(int int_id) : int_id(int_id), owner(nullptr), knight(nullptr), settlement(nullptr), city(nullptr) {}
     
     Board::Tile::Tile(int int_id, TileType* type) : int_id(int_id),  blocked(false), type(type) {}
     

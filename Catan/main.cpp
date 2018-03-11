@@ -80,8 +80,8 @@ public:
         // option of choosing a resource of choice if player has third science improvement
         // collect resources
         
-        // NOTE: it should be the responsibility of the implementation of these actions
-        // in this class to check if the action is compatibile with the STATE OF THE BOARD.
+        // NOTE: it should be the responsibility of these actions in this class to
+        // check if the action is compatibile with the STATE OF THE BOARD.
         // The corresponding methods in the player class will check if the action is
         // within the players current abilities (resources, available pieces, etc)
         // actions
