@@ -10,11 +10,6 @@
 namespace Catan {
     // RESOURCE/COMMODITY CARDS LIKELY UNNECESSARY
     
-    class Resource {
-        Resource(const std::string& type);
-        std::string type;
-    };
-    
     class Progress {
         
     };

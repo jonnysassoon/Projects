@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		475CCF212023E72300C372E8 /* Player.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 475CCF202023E72300C372E8 /* Player.cpp */; };
+		475CCF232024EE1500C372E8 /* Pieces.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 475CCF222024EE1500C372E8 /* Pieces.cpp */; };
+		47AE496D2028CC120055E2A8 /* Card.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 47AE496C2028CC120055E2A8 /* Card.cpp */; };
 		47BDD50F1FCC9FDC00EF3B07 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 47BDD50E1FCC9FDC00EF3B07 /* main.cpp */; };
 		47BDD5171FCCA00500EF3B07 /* Board.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 47BDD5151FCCA00500EF3B07 /* Board.cpp */; };
 		47BDD51B1FCCB94200EF3B07 /* ConcentricGraph.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 47BDD5191FCCB94200EF3B07 /* ConcentricGraph.cpp */; };
@@ -25,13 +28,19 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		47480D0620083A3E008E4B54 /* Pieces.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Pieces.h; sourceTree = SOURCE_ROOT; };
+		47480D0720083B58008E4B54 /* Player.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Player.h; sourceTree = SOURCE_ROOT; };
+		47480D0820083BBA008E4B54 /* Card.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Card.h; sourceTree = SOURCE_ROOT; };
+		47480D0920083C77008E4B54 /* Outline.rtf */ = {isa = PBXFileReference; lastKnownFileType = text.rtf; path = Outline.rtf; sourceTree = SOURCE_ROOT; };
+		475CCF202023E72300C372E8 /* Player.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Player.cpp; sourceTree = SOURCE_ROOT; };
+		475CCF222024EE1500C372E8 /* Pieces.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Pieces.cpp; sourceTree = SOURCE_ROOT; };
+		47AE496C2028CC120055E2A8 /* Card.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Card.cpp; sourceTree = SOURCE_ROOT; };
 		47BDD50B1FCC9FDC00EF3B07 /* Catan */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = Catan; sourceTree = BUILT_PRODUCTS_DIR; };
 		47BDD50E1FCC9FDC00EF3B07 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = main.cpp; path = /Users/jonathansassoon/Projects/Catan/main.cpp; sourceTree = "<absolute>"; };
 		47BDD5151FCCA00500EF3B07 /* Board.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Board.cpp; path = /Users/jonathansassoon/Projects/Catan/Board.cpp; sourceTree = "<absolute>"; };
 		47BDD5181FCCB89100EF3B07 /* ConcentricGraph.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = ConcentricGraph.h; path = /Users/jonathansassoon/Projects/Catan/ConcentricGraph.h; sourceTree = "<absolute>"; };
 		47BDD5191FCCB94200EF3B07 /* ConcentricGraph.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ConcentricGraph.cpp; path = /Users/jonathansassoon/Projects/Catan/ConcentricGraph.cpp; sourceTree = "<absolute>"; };
 		47BDD51C1FCCBC6B00EF3B07 /* Board.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Board.h; path = /Users/jonathansassoon/Projects/Catan/Board.h; sourceTree = "<absolute>"; };
-		47F7A3A41FD5DF2500CEB7A4 /* Outline.rtf */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.rtf; path = Outline.rtf; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -69,7 +78,13 @@
 				47BDD51C1FCCBC6B00EF3B07 /* Board.h */,
 				47BDD5181FCCB89100EF3B07 /* ConcentricGraph.h */,
 				47BDD5191FCCB94200EF3B07 /* ConcentricGraph.cpp */,
-				47F7A3A41FD5DF2500CEB7A4 /* Outline.rtf */,
+				47480D0620083A3E008E4B54 /* Pieces.h */,
+				475CCF222024EE1500C372E8 /* Pieces.cpp */,
+				47480D0720083B58008E4B54 /* Player.h */,
+				475CCF202023E72300C372E8 /* Player.cpp */,
+				47480D0820083BBA008E4B54 /* Card.h */,
+				47AE496C2028CC120055E2A8 /* Card.cpp */,
+				47480D0920083C77008E4B54 /* Outline.rtf */,
 			);
 			path = Catan;
 			sourceTree = "<group>";
@@ -131,8 +146,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				475CCF212023E72300C372E8 /* Player.cpp in Sources */,
 				47BDD5171FCCA00500EF3B07 /* Board.cpp in Sources */,
 				47BDD51B1FCCB94200EF3B07 /* ConcentricGraph.cpp in Sources */,
+				47AE496D2028CC120055E2A8 /* Card.cpp in Sources */,
+				475CCF232024EE1500C372E8 /* Pieces.cpp in Sources */,
 				47BDD50F1FCC9FDC00EF3B07 /* main.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

@@ -21,10 +21,11 @@ namespace Catan {
         Player(const std::string& name);
         void display() const;
         std::string getName() const;
+        int getPoints() const;
         int getCitImprovements(const std::string& type); // why can't I make this const?
-        bool buildSettlement();
-        bool buildRoad();
-        bool buildCity();
+        bool buildSettlement(bool firstTurn = false);
+        bool buildRoad(bool firstTurn = false);
+        bool buildCity(bool firstTurn = false);
         bool buildknight(); // this only builds level 1 knights. if a player wants to build a level two knight in one move, the program will execute a buildKnight() followed by an upgradeKnight
         bool upgradeKnight(char level);
         bool activateKnight();
@@ -32,6 +33,7 @@ namespace Catan {
         bool moveRobber();
         bool buildCitImprove(const std::string& type);
         bool buildWall();
+        void collectResource(const std::string& resource); // includes commodities
         void defendCatan();
     private:
         int vp; // victory points

@@ -43,50 +43,54 @@ namespace Catan {
     
     string Player::getName() const { return name; }
     
+    int Player::getPoints() const { return vp; }
+    
     int Player::getCitImprovements(const string& type) { // returns number of flips
         return citImprov[type];
     }
     
-    bool Player::buildSettlement() {
-//       this should be in main.cpp when the command is entered:
-                //  if (/*loc is not valid*/) return false;
-        vector<string> necessary = {"sheep", "brick", "wheat", "wood"};
-        for (const string& aRes : necessary) {
-            if (resources[aRes] < 1) return false;
+    bool Player::buildSettlement(bool firstTurn) {
+        if (!firstTurn) { // if it is the first turn, it's free
+            vector<string> necessary = {"sheep", "brick", "wheat", "wood"};
+            for (const string& aRes : necessary) {
+                if (resources[aRes] < 1) return false;
+            }
+            if (pieces["settlement"] < 1) return false;
+            spend(necessary);
         }
-        if (pieces["settlement"] < 1) return false;
-        spend(necessary);
         pieces["settlement"]--;
         vp++;
         return true;
     }
     
-    bool Player::buildRoad() {
-//        if (/*loc is not valid*/) return false;
-        vector<string> necessary = {"brick", "wood"};
-        for (const string& aRes : necessary) {
-            if (resources[aRes] < 1) return false;
+    bool Player::buildRoad(bool firstTurn) {
+        if (!firstTurn) {
+            vector<string> necessary = {"brick", "wood"};
+            for (const string& aRes : necessary) {
+                if (resources[aRes] < 1) return false;
+            }
+            if (pieces["road"] < 1) return false;
+            spend(necessary);
         }
-        if (pieces["road"] < 1) return false;
-        spend(necessary);
         pieces["road"]--;
         return true;
     }
     
-    bool Player::buildCity() {
-//        if (/*loc is not valid*/) return false;
-        vector<string> necessary = {"wheat", "wheat", "ore", "ore", "ore"};
-        if (resources["ore"] < 3 || resources["wheat"] < 2) return false;
-        if (pieces["city"] < 1) return false;
-        spend(necessary);
+    bool Player::buildCity(bool firstTurn) {
+        if (!firstTurn) {
+            vector<string> necessary = {"wheat", "wheat", "ore", "ore", "ore"};
+            if (resources["ore"] < 3 || resources["wheat"] < 2) return false;
+            if (pieces["city"] < 1) return false;
+            spend(necessary);
+            pieces["settlement"]++;
+            vp--; // take away a settlement
+        }
+        vp += 2; // add a city
         pieces["city"]--;
-        pieces["settlement"]++;
-        vp++;
         return true;
     }
     
     bool Player::buildknight() {
-//        if (/*loc is not valid*/) return false;
         vector<string> necessary = {"ore", "sheep"};
         if (resources["ore"] < 1 || resources["sheep"] < 1) return false;
         if (pieces["knight1"] < 1) return false;
@@ -96,7 +100,6 @@ namespace Catan {
     }
     
     bool Player::upgradeKnight(char level) {
-//        if (/*loc is not valid*/) return false;
         if (level != '1' && level != '2' && level != '3') return false;
         vector<string> necessary = {"ore", "sheep"};
         if (resources["ore"] < 1 || resources["sheep"] < 1) return false;
@@ -195,7 +198,12 @@ namespace Catan {
         if (pieces["wall"] < 1) return false;
         spend(necessary);
         pieces["wall"]--;
-        return false;
+        return true;
+    }
+
+    void Player::collectResource(const string& resource) {
+        resources[resource]++;
+        handSize++;
     }
     
     void Player::defendCatan() { vp++; }

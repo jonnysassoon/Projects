@@ -8,8 +8,6 @@
 #ifndef Pieces_h
 #define Pieces_h
 #include <string>
-#include <vector>
-
 
 namespace Catan {
     class Player;
@@ -28,7 +26,6 @@ namespace Catan {
     struct Metropolis {
         Metropolis(const std::string& color);
         std::string color;
-        Player* owner;
     };
     
     struct CityWall {

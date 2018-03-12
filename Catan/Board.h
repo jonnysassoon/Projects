@@ -30,6 +30,7 @@
 #define Board_h
 #include "ConcentricGraph.h"
 #include "Pieces.h"
+#include "Player.h"
 #include <map>
 #include <set>
 #include <vector>
@@ -37,10 +38,6 @@
 #include <iostream>
 
 namespace Catan{
-    class Player;
-//    class Settlement;
-//    class City;
-//    class Knight;
     
     struct TileType{
         TileType(std::string name, std::string resource);
@@ -79,7 +76,8 @@ namespace Catan{
     
     class Board : public ConcentricGraph {
         struct Edge;
-
+        struct Tile;
+        
         struct Node {
             Node(int int_id);
             int int_id;
@@ -89,6 +87,7 @@ namespace Catan{
             City* city;
             std::set<Edge*> adj_edges;
             std::set<Node*> adj_nodes;
+            std::set<Tile*> adj_tiles;
         };
         
         struct Edge {
@@ -117,14 +116,18 @@ namespace Catan{
         bool isValidSetLoc(int loc, Player* player); // node loc
         bool isValidCityLoc(int loc, Player* player); // node loc
         bool isValidRoadLoc(int loc, Player* player); // edge loc
+        bool isValidFirstRoadLoc(int roadLoc, int settLoc); // the settlement is already validated, no need for player pointer
         bool isValidKnightLoc(int loc, Player* player); // node loc
         bool isValidWallLoc(int loc, Player* player); // node loc
         bool isValidRobberLoc(int loc); // tile loc
+        void placeSettlement(int loc, Settlement* settlement);
+        void placeRoad(int loc, Road* road);
+        void placeCity(int loc, City* city, bool setUp = false);
     private:
         void create_board();
         void generate_tiles();
         void link_tiles(Tile& tile1, Tile& tile2);
-        void add_node_to_tile(Tile* thisTile, int node_id);
+        void link_node_to_tile(Tile* thisTile, int node_id);
         void give_num_tile(Tile* the_tile, std::vector<int>& tiles_vec);
         void log_tile(Tile* the_tile);
         void generate_nodes();

@@ -69,9 +69,13 @@ public:
         for (Player* playptr : players) delete playptr;
     }
     void play() { // game engine
-//        while leader->vp != 13 { keep playing }
+        rollForFirst();
+        placeInitialSettlements();
+        while (leader->getPoints() != 13) {
+            turn();
+        }
     }
-    void turn() {
+    void turn() { // maybe this should also be a private method
         Player* player = players[turnTicker];
         cout << player->getName() << "'s turn!\n";
         // prompt player to roll or play a progress card
@@ -112,6 +116,85 @@ private:
     // largest road
     Player* leader = nullptr;
     int turnTicker;
+    void buildSettlement(int loc, Player* player, bool firstTurn = false) {
+        Settlement* setptr = new Settlement(player);
+        player->buildSettlement(firstTurn);
+        gameBoard.placeSettlement(loc, setptr);
+        cout << player->getName() << " builds a settlement on position " << loc << endl << "Where do you want to build the road?\n";
+    }
+    void buildRoad(int loc, Player* player, bool firstTurn = false) {
+        Road* roadptr = new Road(player);
+        player->buildRoad(firstTurn);
+        gameBoard.placeRoad(loc, roadptr);
+        cout << player->getName() << " builds a road on position " << loc << endl;
+    }
+    void buildCity(int loc, Player* player, bool firstTurn = false) {
+        City* cityptr = new City(player);
+        player->buildCity(firstTurn);
+        gameBoard.placeCity(loc, cityptr, firstTurn);
+        cout << player->getName() << " builds a city on position " << loc << endl;
+    }
+    void rollForFirst() {
+        map<Player*, int> firstRoll;
+        pair<Player*, int> goesFirst{nullptr, -1};
+        int turnTickInit = 0;
+        for (Player* player : players) { // If tie, the guy who rolled first wins... (I'm lazy)
+            int roll = dice.roll();
+            firstRoll[player] = roll;
+            if (roll > goesFirst.second) {
+                goesFirst.first = player;
+                goesFirst.second = roll;
+                turnTicker = turnTickInit;
+            }
+            turnTickInit++;
+        }
+    }
+    void placeInitialSettlements() {
+        for (int i = turnTicker; i < turnTicker + players.size(); i++) {
+            Player* player = players[i % players.size()];
+            cout << player->getName() << "'s turn to build a settlement\nWhere do you want to build it?\n";
+            int setLoc;
+            cin >> setLoc;
+            while (!gameBoard.isValidSetLoc(setLoc, player)) {
+                cout << "That position is invalid, please choose again\nWhere do you want to build it?\n";
+                int setLoc;
+                cin >> setLoc;
+            }
+            buildSettlement(setLoc, player, true);
+            int roadLoc;
+            cin >> roadLoc;
+            while (!gameBoard.isValidFirstRoadLoc(roadLoc, setLoc)) {
+                cout << "That position is invalid, please choos again\nWhere do you want to build the road?\n";
+                int roadLoc;
+                cin >> roadLoc;
+            }
+            buildRoad(roadLoc, player, true);
+        }
+        for (int i = 1; i < players.size()+1; i++) {
+            int playerInd = turnTicker-i;
+            if (playerInd < 0) playerInd += players.size(); // wrap around
+            Player* player = players[playerInd];
+            cout << player->getName() << "'s turn to build a settlement\nWhere do you want to build it?\n";
+            int citLoc;
+            cin >> citLoc;
+            while (!gameBoard.isValidSetLoc(citLoc, player)) { // on the first turn, a valid city is a valid settlement
+                cout << "That position is invalid, please choose again\nWhere do you want to build it?\n";
+                int setLoc;
+                cin >> setLoc;
+            }
+            buildCity(citLoc, player, true); // includes giving player corresponding resources
+            int roadLoc;
+            cin >> roadLoc;
+            while (!gameBoard.isValidFirstRoadLoc(roadLoc, citLoc)) {
+                cout << "That position is invalid, please choos again\nWhere do you want to build the road?\n";
+                int roadLoc;
+                cin >> roadLoc;
+            }
+            buildRoad(roadLoc, player, true);
+        }
+        leader = players[turnTicker]; // they're all tied, just make the first guy the leader
+    }
+    
     void resolveEvent(const string& color, int red) {
         if (color == "black") {
             barbarians.move();

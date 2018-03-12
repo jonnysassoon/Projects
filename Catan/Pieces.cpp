@@ -15,7 +15,7 @@ namespace Catan {
 
     Road::Road(Player* owner) : owner(owner) {}
     
-    Metropolis::Metropolis(const string& color) : color(color), owner(nullptr) {}
+    Metropolis::Metropolis(const string& color) : color(color) {}
     
     CityWall::CityWall(Player* owner) : owner(owner) {}
 

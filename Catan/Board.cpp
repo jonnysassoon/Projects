@@ -99,6 +99,12 @@ namespace Catan{
         return false;
     }
     
+    bool Board::isValidFirstRoadLoc(int roadLoc, int settLoc) { // this road has to immediatley border the settlement that it was built after
+        Edge* edge = edges_map[roadLoc];
+        for (Node* nodptr : edge->adj_nodes) if (nodptr->int_id == settLoc) return true;
+        return false;
+    }
+    
     bool Board::isValidKnightLoc(int loc, Player* player) {
         Node* node = nodes_map[loc];
         if (node->owner == nullptr) {
@@ -118,6 +124,30 @@ namespace Catan{
         return loc != robberLoc;
     }
     
+    void Board::placeSettlement(int loc, Settlement* settlement) {
+        Node* node = nodes_map[loc];
+        node->settlement = settlement;
+        node->owner = settlement->owner;
+    }
+    
+    void Board::placeRoad(int loc, Road* road) {
+        Edge* edge = edges_map[loc];
+        edge->owner = road->owner;
+    }
+    
+    void Board::placeCity(int loc, City *city, bool setUp) {
+        Node* node = nodes_map[loc];
+        Settlement* oldSet = node->settlement;
+        node->settlement = nullptr;
+        delete oldSet;
+        node->city = city;
+        node->owner = city->owner; // in case of first turn where owner isn't assigned. otherwise, this is redundant
+        if (setUp) { // give player resources of neighboring hex tiles
+            Player* player = city->owner;
+            for (Tile* tilptr : node->adj_tiles)player->collectResource(tilptr->type->resource);
+        }
+    }
+    
     void Board::link_nodes(int& edge_id, Node& node1, Node& node2){
         Edge* edge(new Edge(edge_id));
         edges_map[edge_id] = edge;
@@ -131,7 +161,7 @@ namespace Catan{
         edge_id++;
     }
     
-    // To think about: could I just do this recursively?
+    // could I just do this recursively?
     void Board::generate_nodes(){ // keep track of all nodes according to their integer IDs
         int curr_layer = 0;
         int first_in_layer = 1;
@@ -168,9 +198,10 @@ namespace Catan{
             }
         }
     }
-    void Board::add_node_to_tile(Tile* thisTile, int node_id) {
+    void Board::link_node_to_tile(Tile* thisTile, int node_id) {
         Node* toAdd = nodes_map[node_id];
         thisTile->adj_nodes.emplace(toAdd);
+        toAdd->adj_tiles.emplace(thisTile);
     }
     void Board::give_num_tile(Tile* the_tile, vector<int>& numbers_vec) { // TODO: handle 8s and 6s
         int num_tile = numbers_vec.back();
@@ -229,26 +260,26 @@ namespace Catan{
                 connectionTicker = 0;
             }
             if (tile_id == 1) {
-                for (int i = 1; i < 7; i++) add_node_to_tile(thisTile, i);
+                for (int i = 1; i < 7; i++) link_node_to_tile(thisTile, i);
             } else{
                 /* Tile - Node component */
                 for (int i = 0; i < 2; i++) { // every tile has >= 3 nodes from n-1 in their adj_nodes. for two of these, we need to decrement nodeInCurr
-                    add_node_to_tile(thisTile, nodeInCurr);
+                    link_node_to_tile(thisTile, nodeInCurr);
                     nodeInCurr--;
                 }
-                add_node_to_tile(thisTile, nodeInCurr); // this is the 3rd one, we just don't decrement nodeInCurr because we need to keep it the same for the next tile...
-                add_node_to_tile(thisTile, nodeInPrev);
+                link_node_to_tile(thisTile, nodeInCurr); // this is the 3rd one, we just don't decrement nodeInCurr because we need to keep it the same for the next tile...
+                link_node_to_tile(thisTile, nodeInPrev);
                 nodeInPrev--;
                 if (nodeInPrev < firstNodeInCurr - nodes_in_layer(currLayer-1)) nodeInPrev = totalNodesInPrev; // if the node in currLayer-1 goes passed the first node in currLayer-1
-                add_node_to_tile(thisTile, nodeInPrev);
-                if (tile_id == firstTileInCurr) add_node_to_tile(thisTile, firstNodeInCurr);
+                link_node_to_tile(thisTile, nodeInPrev);
+                if (tile_id == firstTileInCurr) link_node_to_tile(thisTile, firstNodeInCurr);
                 else if (setCounter % currLayer == 0) { // ...unless we are on a corner tile, which requires an additional node
                     nodeInCurr--;
-                    add_node_to_tile(thisTile, nodeInCurr);
+                    link_node_to_tile(thisTile, nodeInCurr);
                 } else {
                     nodeInPrev--;
                     if (nodeInPrev < firstNodeInCurr - nodes_in_layer(currLayer-1)) nodeInPrev = totalNodesInPrev;
-                    add_node_to_tile(thisTile, nodeInPrev);
+                    link_node_to_tile(thisTile, nodeInPrev);
                 }
                 setCounter++;
                 /* Tile - Tile component */
