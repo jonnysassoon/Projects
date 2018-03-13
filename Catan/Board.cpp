@@ -37,22 +37,13 @@ namespace Catan{
     Board::~Board() {
         for (int nodeNum = 1; nodeNum <= total_nodes(); nodeNum++){
             Node* toDelete = nodes_map[nodeNum];
-            toDelete->adj_nodes.clear(); // not memory leak because we're deleting everything
-//            for (Edge* link: toDelete->adj_edges){
-            
-//            }
-            cout << "Now deleting node " << toDelete->int_id << endl;
-            delete toDelete;
+            delete toDelete; // node's deconstructor handles all edges, cities, and pieces in play
             toDelete = nullptr;
         }
-        for (int tileNum = 1; tileNum <= total_tiles(); tileNum++) {
-            Tile* toDelete = tiles_map[tileNum];
-            toDelete->adj_nodes.clear();
-            toDelete->adj_tiles.clear();
-            cout << "Now deleting tile " << toDelete->int_id << endl;
-            delete toDelete;
-            toDelete = nullptr;
-        }
+        nodes_map.clear();
+        edges_map.clear();
+        tiles_map.clear();
+        num_tiles.clear();
     }
     
     void Board::display() const {
@@ -62,12 +53,32 @@ namespace Catan{
         }
         cout << "\n\nTILES MAP:\n";
         for(int tileNum = 1; tileNum <= total_tiles(); tileNum++){
-            cout << tileNum << " - " << tiles_map.at(tileNum)->type->name << ":{" << *tiles_map.at(tileNum) << "}\n";
+            cout << tileNum << " - " << tiles_map.at(tileNum)->type << ":{" << *tiles_map.at(tileNum) << "}\n";
         }
     }
     
-    bool Board::isValidSetLoc(int loc, Player* player) {
-        Node* node = nodes_map[loc];
+    void Board::distributeResources(int roll) const {
+        set<Tile*> tiles = num_tiles.at(roll); // this will only have stuff in it if a settlement/city was built on it
+        for (Tile* tile : tiles) {
+            if (!tile->blocked) {
+                for (Node* node : tile->adj_nodes) {
+                    if (node->owner != nullptr && node->knight == nullptr) { // if it's owned, but there's no knight (i.e. there's a settlement/city)
+                        node->owner->collectResource(tile->resource); // collect at least one
+                        if (node->city != nullptr) {
+                            if (tile->resource == "wheat" || tile->resource == "brick") {
+                                node->owner->collectResource(tile->resource);
+                            } else {
+                                node->owner->collectResource(tile->commodity);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    bool Board::isValidSetLoc(int loc, Player* player) const {
+        Node* node = nodes_map.at(loc);
         if (node->owner == nullptr) {
             for (Node* nodptr : node->adj_nodes) {
                 if (nodptr->city != nullptr || nodptr->settlement != nullptr) return false; // of the adjacent locations, one of them is already taken with a city/settlement
@@ -79,13 +90,13 @@ namespace Catan{
         return false;
     }
     
-    bool Board::isValidCityLoc(int loc, Player* player){
-        Node* node = nodes_map[loc];
+    bool Board::isValidCityLoc(int loc, Player* player) const {
+        Node* node = nodes_map.at(loc);
         return node->owner == player && node->settlement != nullptr; // the node *is* owned by this player, and there *is* a settlement here
     }
     
-    bool Board::isValidRoadLoc(int loc, Player* player){
-        Edge* edge = edges_map[loc];
+    bool Board::isValidRoadLoc(int loc, Player* player) const {
+        Edge* edge = edges_map.at(loc);
         if (edge->owner == nullptr) { // nothing is here
             for (Node* nodptr : edge->adj_nodes) {
                 if (nodptr->owner == player) return true; // a connecting node is owned by this player
@@ -99,14 +110,14 @@ namespace Catan{
         return false;
     }
     
-    bool Board::isValidFirstRoadLoc(int roadLoc, int settLoc) { // this road has to immediatley border the settlement that it was built after
-        Edge* edge = edges_map[roadLoc];
+    bool Board::isValidFirstRoadLoc(int roadLoc, int settLoc) const { // this road has to immediatley border the settlement that it was built after
+        Edge* edge = edges_map.at(roadLoc);
         for (Node* nodptr : edge->adj_nodes) if (nodptr->int_id == settLoc) return true;
         return false;
     }
     
-    bool Board::isValidKnightLoc(int loc, Player* player) {
-        Node* node = nodes_map[loc];
+    bool Board::isValidKnightLoc(int loc, Player* player) const {
+        Node* node = nodes_map.at(loc);
         if (node->owner == nullptr) {
             for (Edge* edgptr : node->adj_edges) {
                 if (edgptr->owner == player) return true;
@@ -115,12 +126,12 @@ namespace Catan{
         return false;
     }
     
-    bool Board::isValidWallLoc(int loc, Player* player) {
-        Node* node = nodes_map[loc];
+    bool Board::isValidWallLoc(int loc, Player* player) const {
+        Node* node = nodes_map.at(loc);
         return node->city != nullptr && node->city->owner == player && node->city->wall == nullptr;
     }
     
-    bool Board::isValidRobberLoc(int loc) {
+    bool Board::isValidRobberLoc(int loc) const {
         return loc != robberLoc;
     }
     
@@ -128,11 +139,14 @@ namespace Catan{
         Node* node = nodes_map[loc];
         node->settlement = settlement;
         node->owner = settlement->owner;
+        for (Tile* tileptr : node->adj_tiles) {
+            num_tiles[tileptr->num_tile].emplace(tileptr); // include this tile in the set of tiles that its number maps to
+        }
     }
     
-    void Board::placeRoad(int loc, Road* road) {
+    void Board::placeRoad(int loc, Player* player) {
         Edge* edge = edges_map[loc];
-        edge->owner = road->owner;
+        edge->owner = player;
     }
     
     void Board::placeCity(int loc, City *city, bool setUp) {
@@ -142,10 +156,25 @@ namespace Catan{
         delete oldSet;
         node->city = city;
         node->owner = city->owner; // in case of first turn where owner isn't assigned. otherwise, this is redundant
+        for (Tile* tileptr : node->adj_tiles) {
+            num_tiles[tileptr->num_tile].emplace(tileptr); // include this tile in the set of tiles that its number maps to
+        }
         if (setUp) { // give player resources of neighboring hex tiles
             Player* player = city->owner;
-            for (Tile* tilptr : node->adj_tiles)player->collectResource(tilptr->type->resource);
+            for (Tile* tilptr : node->adj_tiles)player->collectResource(tilptr->resource);
         }
+    }
+    
+    set<Player*> Board::placeRobber(int newLoc) {
+        Tile* prevTile = tiles_map[robberLoc];
+        prevTile->blocked = false;
+        Tile* newTile = tiles_map[newLoc];
+        newTile->blocked = true;
+        set<Player*> toRob;
+        for (Node* node : newTile->adj_nodes) {
+            if (node->owner != nullptr && node->knight == nullptr) toRob.emplace(node->owner);
+        }
+        return toRob;
     }
     
     void Board::link_nodes(int& edge_id, Node& node1, Node& node2){
@@ -239,9 +268,11 @@ namespace Catan{
         int connectionTicker = 0; // keeps track of where you are relative to a corner tile
         
         for (int tile_id = 1; tile_id < total_tiles() + 1; tile_id++){
-            Tile* thisTile = new Tile(tile_id , types.back());
+            TileType* used = types.back();
+            Tile* thisTile = new Tile(tile_id , used);
+            delete used; // we don't used the pointer, we just wanted to copy its initial info
             types.pop_back();
-            if (thisTile->type->name != "desert") give_num_tile(thisTile, num_tiles); // give it a number if it isn't desert hex
+            if (thisTile->type != "desert") give_num_tile(thisTile, num_tiles); // give it a number if it isn't desert hex
             else {
                 thisTile->blocked = true; // just for consistency, doesn't make a difference
                 robberLoc = tile_id;
@@ -308,12 +339,34 @@ namespace Catan{
         generate_tiles();
     }
     
-    Board::Edge::Edge(int int_id) : int_id(int_id), owner(nullptr) {}
-    
     Board::Node::Node(int int_id) : int_id(int_id), owner(nullptr), knight(nullptr), settlement(nullptr), city(nullptr) {}
+    Board::Node::~Node() { // owner is deleted in the game's deconstructor
+        delete knight;
+        knight = nullptr;
+        delete settlement;
+        settlement = nullptr;
+        delete city;
+        city = nullptr;
+        for (Edge* edge : adj_edges) {
+            delete edge;
+            edge = nullptr;
+        } adj_edges.clear();
+        for (Tile* tile: adj_tiles) {
+            delete tile;
+            tile = nullptr;
+        } adj_tiles.clear();
+    }
     
-    Board::Tile::Tile(int int_id, TileType* type) : int_id(int_id),  blocked(false), type(type) {}
+    Board::Edge::Edge(int int_id) : int_id(int_id), owner(nullptr) {}
+    Board::Edge::~Edge() {
+        adj_nodes.clear(); // will already be deleted,
+    }
     
+    Board::Tile::Tile(int int_id, TileType* type) : int_id(int_id),  blocked(false), type(type->name), resource(type->resource), commodity(type->commodity) {}
+    Board::Tile::~Tile() {
+        adj_tiles.clear();
+        adj_nodes.clear();
+    }
     ostream& operator<<(ostream& os, const Board::Node& rhs){
         os << rhs.int_id << ":[";
         int iter = 0;

@@ -43,6 +43,7 @@ namespace Catan{
         TileType(std::string name, std::string resource);
         std::string name;
         std::string resource;
+        std::string commodity; // an empty string
     };
     
     struct Hill : public TileType {
@@ -78,8 +79,9 @@ namespace Catan{
         struct Edge;
         struct Tile;
         
-        struct Node {
+        struct Node { //TODO: get rid of settlement pointer, just change to bools?
             Node(int int_id);
+            ~Node();
             int int_id;
             Player* owner;
             Knight* knight;
@@ -92,6 +94,7 @@ namespace Catan{
         
         struct Edge {
             Edge(int int_id);
+            ~Edge();
             int int_id;
             Player* owner;
             std::set<Node*> adj_nodes;
@@ -99,12 +102,15 @@ namespace Catan{
         
         struct Tile {
             Tile(int int_id, TileType* type);
+            ~Tile();
             int int_id; // unique identifier on the board
-            int num_tile; // dice number.
+            std::string type;
+            std::string resource;
+            std::string commodity;
             bool blocked; // for the robber
+            int num_tile; // dice number.
             std::set<Node*> adj_nodes; // set of the nodes adjacent to the tile.
             std::set<Tile*> adj_tiles; // set of the tiles adjacent to this tile.
-            TileType* type; // mountain, field, pasture, etc...
         };
         
         friend std::ostream& operator<<(std::ostream& os, const Board::Node& rhs);
@@ -113,16 +119,18 @@ namespace Catan{
         Board(int layer = 2);
         ~Board();
         void display() const;
-        bool isValidSetLoc(int loc, Player* player); // node loc
-        bool isValidCityLoc(int loc, Player* player); // node loc
-        bool isValidRoadLoc(int loc, Player* player); // edge loc
-        bool isValidFirstRoadLoc(int roadLoc, int settLoc); // the settlement is already validated, no need for player pointer
-        bool isValidKnightLoc(int loc, Player* player); // node loc
-        bool isValidWallLoc(int loc, Player* player); // node loc
-        bool isValidRobberLoc(int loc); // tile loc
+        void distributeResources(int roll) const;
+        bool isValidSetLoc(int loc, Player* player) const; // node loc
+        bool isValidCityLoc(int loc, Player* player) const; // node loc
+        bool isValidRoadLoc(int loc, Player* player) const; // edge loc
+        bool isValidFirstRoadLoc(int roadLoc, int settLoc) const; // the settlement is already validated, no need for player pointer
+        bool isValidKnightLoc(int loc, Player* player) const; // node loc
+        bool isValidWallLoc(int loc, Player* player) const; // node loc
+        bool isValidRobberLoc(int loc) const; // tile loc
         void placeSettlement(int loc, Settlement* settlement);
-        void placeRoad(int loc, Road* road);
+        void placeRoad(int loc, Player* player);
         void placeCity(int loc, City* city, bool setUp = false);
+        std::set<Player*> placeRobber(int newLoc); // returns a set of the players that can be robbed as a result of this action
     private:
         void create_board();
         void generate_tiles();
@@ -134,8 +142,8 @@ namespace Catan{
         void link_nodes(int& edge_id, Node& node1, Node& node2); // adds node1 to node2's adj_lst and vice versa
         std::map<int, Node*> nodes_map;
         std::map<int, Edge*> edges_map;
-        std::map<int, Tile*> tiles_map; // TODO: is there a way to efficiently access the tile(s) when the dice are rolled?
-        std::map<int, Player*> city_locs; // location of all the cities with their owners
+        std::map<int, Tile*> tiles_map;
+        std::map<int, std::set<Tile*>> num_tiles; // map the number tiles to the hex tiles with those numbers
         int robberLoc;
     };
 }

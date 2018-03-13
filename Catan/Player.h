@@ -22,7 +22,14 @@ namespace Catan {
         void display() const;
         std::string getName() const;
         int getPoints() const;
-        int getCitImprovements(const std::string& type); // why can't I make this const?
+        int getCapacity() const;
+        int getHandSize() const;
+        int getCitImprovements(const std::string& type) const; // number of flips
+        bool hasAbility(const std::string& type) const; // does the player have a special ability from flips
+        bool hasResource(const std::string& resource) const;
+        bool collectedThisRound() const;
+        void discard(const std::string& resource);
+        void resetCollected();
         bool buildSettlement(bool firstTurn = false);
         bool buildRoad(bool firstTurn = false);
         bool buildCity(bool firstTurn = false);
@@ -31,16 +38,18 @@ namespace Catan {
         bool activateKnight();
         bool deactivateKnight();
         bool moveRobber();
+        void rob(Player* other);
         bool buildCitImprove(const std::string& type);
         bool buildWall();
         void collectResource(const std::string& resource); // includes commodities
         void defendCatan();
     private:
         int vp; // victory points
-        int Cap; // how many resources/commodities
+        int cap; // how many resources/commodities can they have
         int handSize; // number of resources in hand currently
         int roadLength;
         int knightStrength;
+        bool collected;
         std::string name;
         std::map<std::string, int> pieces; // map piece names to the amount player has
         std::map<std::string, int> resources; // map resource/commodity names to the amount player has
@@ -50,7 +59,6 @@ namespace Catan {
         void spend(const std::vector<std::string>& spending);
         bool moveKnight(Knight* theKnight);
         bool moveDisplaced(Knight* theKnight);
-        bool rob(Player* other);
     };
 }
 

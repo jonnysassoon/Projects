@@ -18,11 +18,6 @@ namespace Catan {
         Player* owner;
     };
     
-    struct Road {
-        Road(Player* owner);
-        Player* owner;
-    };
-    
     struct Metropolis {
         Metropolis(const std::string& color);
         std::string color;

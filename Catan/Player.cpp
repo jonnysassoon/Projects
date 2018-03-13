@@ -29,9 +29,9 @@ using namespace std;
     // will be implemented in the main.cpp file in the Settlers class
 namespace Catan {
     
-    Player::Player(const string& name) : vp(0), Cap(7), handSize(0), roadLength(0),
+    Player::Player(const string& name) : vp(0), cap(7), handSize(0), roadLength(0),
         knightStrength(0),
-        name(name),
+        name(name), collected(false),
         // TODO: how many pieces for each category does the player start with?
         pieces({{"settlement", 5}, {"city", 4}, {"road", 15}, {"knight1", 2}, {"knight2", 2}, {"knight1", 2}, {"wall", 3}}),
         resources({{"sheep", 0}, {"brick", 0}, {"wheat", 0}, {"wood", 0}, {"ore", 0}, {"coin", 0}, {"paper", 0}, {"silk", 0}}),
@@ -45,9 +45,24 @@ namespace Catan {
     
     int Player::getPoints() const { return vp; }
     
-    int Player::getCitImprovements(const string& type) { // returns number of flips
-        return citImprov[type];
+    int Player::getCapacity() const { return cap; }
+    
+    int Player::getHandSize() const { return handSize; }
+    
+    int Player::getCitImprovements(const string& type) const { return citImprov.at(type); }
+    
+    bool Player::hasAbility(const string& type) const { return citImprov.at(type) >= 3; }
+    
+    bool Player::hasResource(const string& resource) const { return resources.at(resource) > 0; }
+    
+    bool Player::collectedThisRound() const { return collected; }
+    
+    void Player::discard(const string& resource) {
+        vector<string> toSpend{resource};
+        spend(toSpend);
     }
+    
+    void Player::resetCollected() { collected = false; }
     
     bool Player::buildSettlement(bool firstTurn) {
         if (!firstTurn) { // if it is the first turn, it's free
@@ -63,7 +78,7 @@ namespace Catan {
         return true;
     }
     
-    bool Player::buildRoad(bool firstTurn) {
+    bool Player::buildRoad(bool firstTurn) { // TODO: check road length!!
         if (!firstTurn) {
             vector<string> necessary = {"brick", "wood"};
             for (const string& aRes : necessary) {
@@ -128,7 +143,6 @@ namespace Catan {
     }
     
     bool Player::deactivateKnight() {
-        // if (/*loc is not valid*/) return false;
         Knight* theKnight = nullptr; /* = getTheKnightAtThatLocation();*/
          if (!theKnight->activated || theKnight->activeThisRound) return false;
         string action;
@@ -146,35 +160,50 @@ namespace Catan {
         return true;
     }
     
-    bool Player::moveRobber() {
-        int newLoc;
-        cout << "Where would you like to move the robber to?\n";
-        cin >>newLoc;
-        if (newLoc == -1) return false; // code for "cancel"
-        set<Player*> playersToRob;
-        if (1 <= newLoc && newLoc <= 54 /*&& newLoc != previous robber location*/) {
-            // go to the tiles map, set that tile to blocked = true
-            // for node in that tiles adjacencies
-                // if that node has a settlement or a city whose owner is not you
-                    // playersToRob.add(that Player pointer)
+//    bool Player::moveRobber() {
+//        int newLoc;
+//        cout << "Where would you like to move the robber to?\n";
+//        cin >>newLoc;
+//        if (newLoc == -1) return false; // code for "cancel"
+//        set<Player*> playersToRob;
+//        if (1 <= newLoc && newLoc <= 54 /*&& newLoc != previous robber location*/) {
+//            // go to the tiles map, set that tile to blocked = true
+//            // for node in that tiles adjacencies
+//                // if that node has a settlement or a city whose owner is not you
+//                    // playersToRob.add(that Player pointer)
+//        }
+//        if (playersToRob.size() != 0) {
+//            cout << "Players to rob:\n";
+//            for (Player* playerptr : playersToRob) {
+//                playerptr->display();
+//                cout << endl;
+//            }
+//            string playerName;
+//            cout << "Who would you like to rob?\n";
+//            cin >> playerName;
+//            for (Player* playerptr : playersToRob) { // assumes player have unique names. Necessary to change? maybe choose by color? (assign colors to players)
+//                if (playerptr->name == playerName) {
+//                    rob(playerptr);
+//                    return true;
+//                }
+//            }
+//        }
+//        return true;
+//    }
+    
+    void Player::rob(Player* other) {
+        vector<string> othersHand;
+        // add resource names the number of times his resource library says he has that resource
+        for (auto keyIter = other->resources.begin(); keyIter != other->resources.end(); keyIter++) {
+            for (int i = 0; i < keyIter->second; i++) othersHand.push_back(keyIter->first); // if he doesn't have any, this loop won't begin
         }
-        if (playersToRob.size() != 0) {
-            cout << "Players to rob:\n";
-            for (Player* playerptr : playersToRob) {
-                playerptr->display();
-                cout << endl;
-            }
-            string playerName;
-            cout << "Who would you like to rob?\n";
-            cin >> playerName;
-            for (Player* playerptr : playersToRob) { // assumes player have unique names. Necessary to change? maybe choose by color? (assign colors to players)
-                if (playerptr->name == playerName) {
-                    rob(playerptr);
-                    return true;
-                }
-            }
-        }
-        return true;
+        srand(time(nullptr));
+        int randomNum = rand();
+        string pick = othersHand[randomNum % othersHand.size()];
+        other->resources[pick]--;
+        other->handSize--;
+        resources[pick]++;
+        handSize++;
     }
     
     bool Player::buildCitImprove(const string& type) {
@@ -198,17 +227,19 @@ namespace Catan {
         if (pieces["wall"] < 1) return false;
         spend(necessary);
         pieces["wall"]--;
+        cap += 2;
         return true;
     }
 
     void Player::collectResource(const string& resource) {
         resources[resource]++;
         handSize++;
+        collected = true;
     }
     
     void Player::defendCatan() { vp++; }
     
-    void Player::spend(const std::vector<std::string>& spending){
+    void Player::spend(const vector<string>& spending){
         for (const string& resource : spending) {
             resources[resource]--;
             handSize--;
@@ -244,22 +275,6 @@ namespace Catan {
         // if (other knight strength >= this knight) return false
 //            (otherknight->owner).moveDisplaced(otherknight);
         // place the knight there
-        return true;
-    }
-    
-    bool Player::rob(Player* other) {
-        vector<string> othersHand;
-        // add resource names the number of times his resource library says he has that resource
-        for (auto keyIter = other->resources.begin(); keyIter != other->resources.end(); keyIter++) {
-            for (int i = 0; i < keyIter->second; i++) othersHand.push_back(keyIter->first); // if he doesn't have any, this loop won't begin
-        }
-        srand(time(nullptr));
-        int randomNum = rand();
-        string pick = othersHand[randomNum % othersHand.size()];
-        other->resources[pick]--;
-        other->handSize--;
-        resources[pick]++;
-        handSize++;
         return true;
     }
 }
