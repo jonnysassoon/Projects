@@ -116,20 +116,26 @@ namespace Catan{
         friend std::ostream& operator<<(std::ostream& os, const Board::Node& rhs);
         friend std::ostream& operator<<(std::ostream& os, const Board::Tile& rhs);
     public:
+        // The boolean methods answer the question: "Can this action theoretically be done?" i.e. "Does the state of the pieces on the board potentially allow this to happen"
         Board(int layer = 2);
         ~Board();
         void display() const;
         void distributeResources(int roll) const;
+        int getKnightLevel(int loc) const; // get the level of a knight at that location
         bool isValidSetLoc(int loc, Player* player) const; // node loc
         bool isValidCityLoc(int loc, Player* player) const; // node loc
         bool isValidRoadLoc(int loc, Player* player) const; // edge loc
         bool isValidFirstRoadLoc(int roadLoc, int settLoc) const; // the settlement is already validated, no need for player pointer
-        bool isValidKnightLoc(int loc, Player* player) const; // node loc
+        bool isValidKnightLoc(int loc, Player* player, bool upgrade) const; // node loc
         bool isValidWallLoc(int loc, Player* player) const; // node loc
         bool isValidRobberLoc(int loc) const; // tile loc
+        bool canActivateKnight(int loc, Player* player) const; // node loc
         void placeSettlement(int loc, Settlement* settlement);
         void placeRoad(int loc, Player* player);
         void placeCity(int loc, City* city, bool setUp = false);
+        void placeWall(int loc);
+        void placeKnight(int loc, Knight* knight);
+        void activateKnight(int loc);
         std::set<Player*> placeRobber(int newLoc); // returns a set of the players that can be robbed as a result of this action
     private:
         void create_board();

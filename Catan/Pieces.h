@@ -23,15 +23,10 @@ namespace Catan {
         std::string color;
     };
     
-    struct CityWall {
-        CityWall(Player* owner);
-        Player* owner;
-    };
-    
     struct City {
         City(Player* owner);
         Player* owner;
-        CityWall* wall;
+        bool wall;
         Metropolis* metropolis;
     };
     

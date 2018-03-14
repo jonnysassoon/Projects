@@ -77,7 +77,15 @@ namespace Catan{
         }
     }
     
+    int Board::getKnightLevel(int loc) const {
+        if (loc < 1 || loc > total_nodes()) return -1;
+        Node* node = nodes_map.at(loc);
+        if (node->knight == nullptr) return -1;
+        return node->knight->strength;
+    }
+    
     bool Board::isValidSetLoc(int loc, Player* player) const {
+        if (loc < 1 || loc > total_nodes()) return false;
         Node* node = nodes_map.at(loc);
         if (node->owner == nullptr) {
             for (Node* nodptr : node->adj_nodes) {
@@ -91,11 +99,13 @@ namespace Catan{
     }
     
     bool Board::isValidCityLoc(int loc, Player* player) const {
+        if (loc < 1 || loc > total_nodes()) return false;
         Node* node = nodes_map.at(loc);
         return node->owner == player && node->settlement != nullptr; // the node *is* owned by this player, and there *is* a settlement here
     }
     
     bool Board::isValidRoadLoc(int loc, Player* player) const {
+        if (loc < 1 || loc > total_edges()) return false;
         Edge* edge = edges_map.at(loc);
         if (edge->owner == nullptr) { // nothing is here
             for (Node* nodptr : edge->adj_nodes) {
@@ -110,29 +120,42 @@ namespace Catan{
         return false;
     }
     
-    bool Board::isValidFirstRoadLoc(int roadLoc, int settLoc) const { // this road has to immediatley border the settlement that it was built after
+    bool Board::isValidFirstRoadLoc(int roadLoc, int settLoc) const { // this road has to immediatley border the settlement/city that it was built after
+        if (roadLoc < 1 || roadLoc > total_edges()) return false;
         Edge* edge = edges_map.at(roadLoc);
         for (Node* nodptr : edge->adj_nodes) if (nodptr->int_id == settLoc) return true;
         return false;
     }
     
-    bool Board::isValidKnightLoc(int loc, Player* player) const {
+    bool Board::isValidKnightLoc(int loc, Player* player, bool upgrade) const { // the logic is difference if this is for an upgrade
+        if (loc < 1 || loc > total_nodes()) return false;
         Node* node = nodes_map.at(loc);
-        if (node->owner == nullptr) {
-            for (Edge* edgptr : node->adj_edges) {
-                if (edgptr->owner == player) return true;
+        if (!upgrade){
+            if (node->owner == nullptr) {
+                for (Edge* edgptr : node->adj_edges) {
+                    if (edgptr->owner == player) return true;
+                }
             }
+        } else {
+            return node->owner == player && node->knight != nullptr && node->knight->strength < 3;
         }
         return false;
     }
     
     bool Board::isValidWallLoc(int loc, Player* player) const {
+        if (loc < 1 || loc > total_nodes()) return false;
         Node* node = nodes_map.at(loc);
-        return node->city != nullptr && node->city->owner == player && node->city->wall == nullptr;
+        return node->city != nullptr && node->city->owner == player && node->city->wall == false;
     }
     
     bool Board::isValidRobberLoc(int loc) const {
-        return loc != robberLoc;
+        return (loc >=1 && loc <= total_tiles()) && loc != robberLoc; // it's within tile range, and the robber isn't there
+    }
+    
+    bool Board::canActivateKnight(int loc, Player* player) const {
+        if (loc < 1 || loc > total_nodes()) return false;
+        Node* node = nodes_map.at(loc);
+        return node->knight != nullptr && node->knight->owner == player && !node->knight->activated; // there's an inactive knight that's owned by the player on this location
     }
     
     void Board::placeSettlement(int loc, Settlement* settlement) {
@@ -149,7 +172,7 @@ namespace Catan{
         edge->owner = player;
     }
     
-    void Board::placeCity(int loc, City *city, bool setUp) {
+    void Board::placeCity(int loc, City* city, bool setUp) {
         Node* node = nodes_map[loc];
         Settlement* oldSet = node->settlement;
         node->settlement = nullptr;
@@ -163,6 +186,23 @@ namespace Catan{
             Player* player = city->owner;
             for (Tile* tilptr : node->adj_tiles)player->collectResource(tilptr->resource);
         }
+    }
+    
+    void Board::placeWall(int loc) {
+        Node* node = nodes_map[loc];
+        node->city->wall = true;
+    }
+    
+    void Board::placeKnight(int loc, Knight* knight) {
+        Node* node = nodes_map[loc];
+        if (node->knight != nullptr) delete node->knight;
+        node->knight = knight;
+        node->owner = knight->owner;
+    }
+    
+    void Board::activateKnight(int loc) {
+        Node * node = nodes_map[loc];
+        node->knight->activated = true;
     }
     
     set<Player*> Board::placeRobber(int newLoc) {

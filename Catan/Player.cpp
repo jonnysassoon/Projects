@@ -13,7 +13,6 @@
 using namespace std;
 
 
-// TODO: I need "cancel" options for all of these methods
 // How do players interract with the board?
     // In the game engine, there will be a prompt for their action
     // The player types the action command, say "build settlement"
@@ -48,6 +47,8 @@ namespace Catan {
     int Player::getCapacity() const { return cap; }
     
     int Player::getHandSize() const { return handSize; }
+    
+    int Player::getKnightStrength() const { return knightStrength; }
     
     int Player::getCitImprovements(const string& type) const { return citImprov.at(type); }
     
@@ -105,58 +106,79 @@ namespace Catan {
         return true;
     }
     
-    bool Player::buildknight() {
-        vector<string> necessary = {"ore", "sheep"};
-        if (resources["ore"] < 1 || resources["sheep"] < 1) return false;
-        if (pieces["knight1"] < 1) return false;
+    bool Player::buildCitImprove(const string& type) {
+        int pastFlips = Player::getCitImprovements(type);
+        if (pastFlips == 5) return false; // maxed out on flips
+        string commodity;
+        if (type == "science") commodity = "paper";
+        else if (type == "politics") commodity = "coin";
+        else if (type == "trade") commodity = "silk";
+        if (resources[commodity] < pastFlips+1) return false; //insufficient
+        vector<string> necessary;
+        for (int i = 0; i < pastFlips+1; i++) necessary.push_back(commodity);
         spend(necessary);
-        pieces["knight1"]--;
+        citImprov[type]++;
         return true;
     }
     
-    bool Player::upgradeKnight(char level) {
+    bool Player::buildWall() {
+        vector<string> necessary{"brick", "brick"};
+        if (resources["brick"] < 2) return false;
+        if (pieces["wall"] < 1) return false;
+        spend(necessary);
+        pieces["wall"]--;
+        cap += 2;
+        return true;
+    }
+    
+    bool Player::buildKnight(char level) {
         if (level != '1' && level != '2' && level != '3') return false;
-        vector<string> necessary = {"ore", "sheep"};
-        if (resources["ore"] < 1 || resources["sheep"] < 1) return false;
+        int levelInt = level % 48; // turns '3' into 3
+        vector<string> necessary;
+        for (int i = 0; i < levelInt; i++) { // for every level you want to build, add a sheep + ore
+            necessary.push_back("sheep");
+            necessary.push_back("ore");
+        }
+        if (resources["ore"] < levelInt || resources["sheep"] < levelInt) return false;
+        if (level == '3' and !hasAbility("politics")) return false;
         string knight("knight");
         if (pieces[knight + level] < 1) return false;
-        if (level == '3' and citImprov["politics"] < 3) return false;
-        // if level - currKnight strength != 1 return false;
         spend(necessary);
-        // put the new knight on the board
-        pieces[knight+level]--;
-        // pieces["knight-level"]++;
+        pieces[knight + level]--;
         return true;
     }
     
-    bool Player::activateKnight() {
-        // if (/*loc is not valid*/) return false;
-        Knight* theKnight = nullptr; // TODO: this shouldn't be how it's implemented
-        // if (already activated) return false;
+    bool Player::upgradeKnight(char currLevel, char toLevel) {
+        if (toLevel != '2' && toLevel != '3') return false;
+        int toLevelInt = toLevel % 48; // turns '3' into 3
+        int currLevelInt = currLevel % 48;
+        int difference = toLevelInt - currLevelInt;
+        if (difference < 1 || difference > 2) return false; // only valid upgrade if 1 <= difference <= 2
+        vector<string> necessary;
+        for (int i = 0; i < difference; i++) { // for every level difference you want to upgrade, add a sheep + ore
+            necessary.push_back("sheep");
+            necessary.push_back("ore");
+        }
+        if (resources["ore"] < difference || resources["sheep"] < difference) return false;
+        string knight("knight");
+        if (pieces[knight + toLevel] < 1) return false; // don't have anymore of those pieces
+        if (toLevel == '3' and !hasAbility("politics")) return false;
+        spend(necessary);
+        pieces[knight+toLevel]--;
+        pieces[knight+currLevel]++;
+        return true;
+    }
+    
+    bool Player::activateKnight(int strength) {
         vector<string> necessary{"wheat"};
         if (resources["wheat"] < 1) return false;
         spend(necessary);
-        theKnight->activated = true;
-        theKnight->activeThisRound = true; // TODO: figure out when to set this to false
-        knightStrength += theKnight->strength;
+        knightStrength += strength;
         return true;
     }
     
     bool Player::deactivateKnight() {
-        Knight* theKnight = nullptr; /* = getTheKnightAtThatLocation();*/
-         if (!theKnight->activated || theKnight->activeThisRound) return false;
-        string action;
-        cout << "What would you like to do with the knight (move/dispell)\n";
-        cin >> action;
-        if (action == "cancel") return false;
-        theKnight->activated = false;
-        if (action == "move") {
-            moveKnight(theKnight);
-        }
-        if (action == "dispell") {
-            moveRobber();
-        }
-        knightStrength -= theKnight->strength;
+        
         return true;
     }
     
@@ -204,31 +226,6 @@ namespace Catan {
         other->handSize--;
         resources[pick]++;
         handSize++;
-    }
-    
-    bool Player::buildCitImprove(const string& type) {
-        int pastFlips = Player::getCitImprovements(type);
-        if (pastFlips == 5) return false; // maxed out on flips
-        string commodity;
-        if (type == "science") commodity = "paper";
-        else if (type == "politics") commodity = "coin";
-        else if (type == "trade") commodity = "silk";
-        if (resources[commodity] < pastFlips+1) return false; //insufficient
-        vector<string> necessary;
-        for (int i = 0; i < pastFlips+1; i++) necessary.push_back(commodity);
-        spend(necessary);
-        citImprov[type]++;
-        return true;
-    }
-    
-    bool Player::buildWall() {
-        vector<string> necessary{"brick", "brick"};
-        if (resources["brick"] < 2) return false;
-        if (pieces["wall"] < 1) return false;
-        spend(necessary);
-        pieces["wall"]--;
-        cap += 2;
-        return true;
     }
 
     void Player::collectResource(const string& resource) {

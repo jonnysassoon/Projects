@@ -19,6 +19,8 @@
 using namespace std;
 using namespace Catan;
 
+// TODO: I need "cancel" options for all of these methods
+
 class Settlers {
     struct Die {
         int roll() {
@@ -64,6 +66,8 @@ class Settlers {
 public:
     Settlers(const vector<string>& playerNames) {
         for (const string& name : playerNames) players.push_back(new Player(name));
+        defense = 0;
+        leader = nullptr;
         // TODO: create the progress cards
     }
     ~Settlers() {
@@ -90,31 +94,94 @@ private:
     Dice dice;
     BarbarianShip barbarians;
     bool robberInPlay;
-    int defense = 0;
+    int defense;
     set<Player*> defenders; // whenever someone activates a knight, check defenders[0]->knightStrength, if > current leader, defenders = {&thatPlayer}, elif == leader, set.emplace(&thatPlayer), else nothing
     set<Player*> hasAqueduct; // special science ability
-    // largest road
-    Player* leader = nullptr;
+    // largest road. Player* or int?
+    Player* leader;
     int turnTicker;
     
-    void buildSettlement(int loc, Player* player, bool firstTurn = false) {
+    bool buildSettlement(int loc, Player* player, bool firstTurn = false) {
         Settlement* setptr = new Settlement(player);
-        player->buildSettlement(firstTurn);
-        gameBoard.placeSettlement(loc, setptr);
-        cout << player->getName() << " builds a settlement on position " << loc << endl << "Where do you want to build the road?\n";
+        if (player->buildSettlement(firstTurn)) {
+            gameBoard.placeSettlement(loc, setptr);
+            cout << player->getName() << " builds a settlement on position " << loc << endl;
+            return true;
+        }
+        cout << player->getName() << " could not build a settlement.\n";
+        delete setptr;
+        return false;
     }
     
-    void buildRoad(int loc, Player* player, bool firstTurn = false) {
-        player->buildRoad(firstTurn);
-        gameBoard.placeRoad(loc, player);
-        cout << player->getName() << " builds a road on position " << loc << endl;
+    bool buildRoad(int loc, Player* player, bool firstTurn = false) {
+        if (player->buildRoad(firstTurn)) {
+            gameBoard.placeRoad(loc, player);
+            cout << player->getName() << " builds a road on position " << loc << endl;
+            return true;
+        }
+        cout << player->getName() << " could not build a road.\n";
+        return false;
     }
     
-    void buildCity(int loc, Player* player, bool firstTurn = false) {
+    bool buildCity(int loc, Player* player, bool firstTurn = false) {
         City* cityptr = new City(player);
-        player->buildCity(firstTurn);
-        gameBoard.placeCity(loc, cityptr, firstTurn);
-        cout << player->getName() << " builds a city on position " << loc << endl;
+        if(player->buildCity(firstTurn)) {
+            gameBoard.placeCity(loc, cityptr, firstTurn);
+            barbarians.strength++;
+            cout << player->getName() << " builds a city on position " << loc << endl;
+            return true;
+        }
+        cout << player->getName() << " could not build a city.\n";
+        delete cityptr;
+        return false;
+    }
+    
+    bool buildWall(int loc, Player* player) {
+        if (player->buildWall()) {
+            gameBoard.placeWall(loc);
+            cout << player->getName() << " builds a wall on position " << loc << endl;
+            return true;
+        }
+        cout << player->getName() << " could not build a wall.\n";
+        return false;
+    }
+    
+    bool buildKnight(int loc, char level, Player* player) {
+        int levelInt = level % 48; // turns '3' into 3
+        Knight* knightptr = new Knight(levelInt, player);
+        if (player->buildKnight(level)) {
+            gameBoard.placeKnight(loc, knightptr);
+            cout << player->getName() << " builds a level " << level << " knight on position " << loc << endl;
+            return true;
+        }
+        cout << player->getName() << " could not build a level " << level << " knight.\n";
+        return false;
+    }
+    
+    bool upgradeKnight(int loc, char level, Player* player) {
+        int toLevel = level % 48; // turns '3' into 3
+        int currLevelInt = gameBoard.getKnightLevel(loc);
+        char currLevel = currLevelInt - '0'; // turns 3 into '3'
+        Knight* knightptr = new Knight(toLevel, player);
+        if (player->upgradeKnight(currLevel, toLevel)) {
+            gameBoard.placeKnight(loc, knightptr);
+            cout << player->getName() << " upgrades from a level " << currLevel << " knight to a level " << toLevel << " knight on position " << loc << endl;
+            return true;
+        }
+        cout << player->getName() << " could not upgrade from a level " << currLevel << " knight to a level " << toLevel << " knight.\n";
+        return false;
+    }
+    
+    bool activateKnight(int loc, Player* player) {
+        int strength = gameBoard.getKnightLevel(loc);
+        if (player->activateKnight(strength)) {
+            gameBoard.activateKnight(loc);
+            cout << player->getName() << " activated a level " << strength << " knight on position " << loc << endl;
+            defense += strength;
+            return true;
+        }
+        cout << player->getName() << " could not active a knight on position " << loc << endl;
+        return false;
     }
     
     void rollForFirst() {
@@ -145,6 +212,7 @@ private:
                 cin >> setLoc;
             }
             buildSettlement(setLoc, player, true);
+            cout << "Where do you want to build the road?\n";
             int roadLoc;
             cin >> roadLoc;
             while (!gameBoard.isValidFirstRoadLoc(roadLoc, setLoc)) {
@@ -158,20 +226,19 @@ private:
             int playerInd = turnTicker-i;
             if (playerInd < 0) playerInd += players.size(); // wrap around
             Player* player = players[playerInd];
-            cout << player->getName() << "'s turn to build a settlement\nWhere do you want to build it?\n";
+            cout << player->getName() << "'s turn to build a city\nWhere do you want to build it?\n";
             int citLoc;
             cin >> citLoc;
             while (!gameBoard.isValidSetLoc(citLoc, player)) { // on the first turn, a valid city is a valid settlement
                 cout << "That position is invalid, please choose again\nWhere do you want to build it?\n";
-                int setLoc;
-                cin >> setLoc;
+                cin >> citLoc;
             }
             buildCity(citLoc, player, true); // includes giving player corresponding resources
+            cout << "Where do you want to build the road?\n";
             int roadLoc;
             cin >> roadLoc;
             while (!gameBoard.isValidFirstRoadLoc(roadLoc, citLoc)) {
                 cout << "That position is invalid, please choos again\nWhere do you want to build the road?\n";
-                int roadLoc;
                 cin >> roadLoc;
             }
             buildRoad(roadLoc, player, true);
@@ -199,23 +266,23 @@ private:
                 barbarians.reset();
             }
             return;
-        } else if (color == "green") { // access to 2 -> 1 flip; 3 -> 2; 4 -> 3;
+        } else if (color == "green") { // access to 2 : 1 flip; 3 : 2; 4 : 3...
             for (int i = 0; i < players.size(); i++) {
-                if (red - players[turnTicker + i]->getCitImprovements("science") <= 1) {
+                if (red - players[(turnTicker + i)%players.size()]->getCitImprovements("science") <= 1) {
                     // choose a progress card
                 }
             }
             return;
         } else if (color == "blue") {
             for (int i = 0; i < players.size(); i++) {
-                if (red - players[turnTicker + i]->getCitImprovements("politics") <= 1) {
+                if (red - players[(turnTicker + i)%players.size()]->getCitImprovements("politics") <= 1) {
                     // choose a progress card
                 }
             }
             return;
         } else if (color == "yellow") {
             for (int i = 0; i < players.size(); i++) {
-                if (red - players[turnTicker + i]->getCitImprovements("trade") <= 1) {
+                if (red - players[(turnTicker + i)%players.size()]->getCitImprovements("trade") <= 1) {
                     // choose a progress card
                 }
             }
@@ -246,7 +313,6 @@ private:
             cin >> loc;
             while (!gameBoard.isValidRobberLoc(loc)) {
                 cout << "The robber is already on that spot\nWhere do you want to place the robber?\n";
-                int loc;
                 cin >> loc;
             }
             set<Player*> toRob = gameBoard.placeRobber(loc);
@@ -265,7 +331,7 @@ private:
                 for (Player* player : players){
                     if (player->getName() == playerName && player != thePlayer) victim = player;
                 }
-                while (victim == nullptr) {
+                while (victim == nullptr && playerName != "stop") {
                     cout << "The name entered was invalid\nYou can choose to rob:\n";
                     for (Player* player : toRob) cout << player->getName() << endl;
                     string playerName;
@@ -273,7 +339,7 @@ private:
                     cin >> playerName; // assumes all have unique names
                     Player* victim = nullptr;
                     for (Player* player : players) if (player->getName() == playerName) victim = player;
-                }
+                } if (playerName == "stop") exit(1);
                 thePlayer->rob(victim);
             }
         }
@@ -290,13 +356,168 @@ private:
                     while (resource != "brick" || resource != "wood" ||
                            resource != "wheat" || resource != "sheep" || resource != "ore") {
                         cout << "That isn't a resource\nWhich resource would you like (brick/wood/wheat/sheep/ore)?\n";
-                        string resource;
                         cin >> resource;
                     }
                     player->collectResource(resource);
                 }
             }
         } else resolveSeven();
+    }
+    
+    void buildActions() {
+        Player* thePlayer = players[turnTicker];
+        cout << "What would you like to build?\n";
+        string toBuild;
+        cin >> toBuild;
+        while (toBuild != "end") {
+            if (toBuild == "settlement") {
+                cout << "Where would you like to build the settlement?\n";
+                int loc;
+                cin >> loc;
+                string cancel;
+                while (cancel != "yes" && !gameBoard.isValidSetLoc(loc, thePlayer)) {
+                    cout << "Invalid settlement location.\nWould you like to cancel?\n";
+                    cin >> cancel;
+                    if (cancel != "yes") {
+                        cout << "Where would you like to build the settlement?\n";
+                        cin >> loc;
+                    }
+                }
+                if (cancel != "yes") buildSettlement(loc, thePlayer);
+            } else if (toBuild == "city") {
+                cout << "Where would you like to build the city?\n";
+                int loc;
+                cin >> loc;
+                string cancel;
+                while (cancel != "yes" && !gameBoard.isValidCityLoc(loc, thePlayer)) {
+                    cout << "Invalid city location.\nWould you like to cancel?\n";
+                    cin >> cancel;
+                    if (cancel != "yes") {
+                        cout << "Where would you like to build the city?\n";
+                        cin >> loc;
+                    }
+                }
+                if (cancel != "yes") buildCity(loc, thePlayer);
+            } else if (toBuild == "road") {
+                cout << "Where would you like to build the road?\n";
+                int loc;
+                cin >> loc;
+                string cancel;
+                while (cancel != "yes" && !gameBoard.isValidRoadLoc(loc, thePlayer)) {
+                    cout << "Invalid road location.\nWould you like to cancel?\n";
+                    cin >> cancel;
+                    if (cancel != "yes") {
+                        cout << "Where would you like to build the road?\n";
+                        cin >> loc;
+                    }
+                }
+                if (cancel != "yes") buildRoad(loc, thePlayer); // CHECK ROAD LENGTH!!
+            } else if (toBuild == "wall") {
+                cout << "Where would you like to build the wall?\n";
+                int loc;
+                cin >> loc;
+                string cancel;
+                while (cancel != "yes" && !gameBoard.isValidWallLoc(loc, thePlayer)) {
+                    cout << "Invalid wall location.\nWould you like to cancel?\n";
+                    cin >> cancel;
+                    if (cancel != "yes") {
+                        cout << "Where would you like to build the wall?\n";
+                        cin >> loc;
+                    }
+                }
+                if (cancel != "yes") buildWall(loc, thePlayer);
+            }
+            else if (toBuild == "knight") {
+                cout << "Do you want to construct, activate, or upgrade a knight?\n";
+                string option;
+                cin >> option;
+                if (option == "construct") {
+                    cout << "Where would you like to build the knight?\n";
+                    int loc;
+                    cin >> loc;
+                    string cancel;
+                    while (cancel != "yes" && !gameBoard.isValidKnightLoc(loc, thePlayer, false)) {
+                        cout << "Invalid knight location.\nWould you like to cancel?\n";
+                        cin >> cancel;
+                        if (cancel != "yes") {
+                            cout << "Where would you like to build the knight?\n";
+                            cin >> loc;
+                        }
+                    }
+                    if (cancel != "yes") { // you want to build a knight
+                        cout << "What level knight?\n";
+                        char level;
+                        cin >> level;
+                        string different;
+                        while (different != "no" && !buildKnight(loc, level, thePlayer)) { // if you can't build a specific level knight, but you want to build some level knight, it loops
+                            cout << "Do you want to build a different level knight?\n";
+                            cin >> different;
+                            if (different != "no") { // you want to build a different level knight
+                                cout << "What level knight?\n";
+                                cin >> level;
+                            }
+                        }
+                    }
+                }
+                else if (option == "upgrade") {
+                    cout << "Where is the knight you'd like to upgrade?\n";
+                    int loc;
+                    cin >> loc;
+                    string cancel;
+                    while (cancel != "yes" && !gameBoard.isValidKnightLoc(loc, thePlayer, true)) {
+                        cout << "Invalid knight location.\nWould you like to cancel?\n";
+                        cin >> cancel;
+                        if (cancel != "yes") {
+                            cout << "Where is the knight you'd like to upgrade?\n";
+                            cin >> loc;
+                        }
+                    }
+                    if (cancel != "yes") { // you want to upgrade a knight
+                        cout << "What level knight?\n";
+                        char level;
+                        cin >> level;
+                        string different;
+                        while (!upgradeKnight(loc, level, thePlayer) && different != "no") {
+                            cout << "Do you want to build a different level knight?\n";
+                            cin >> different;
+                            if (different != "no") { // you want to build a different level knight
+                                cout << "What level knight?\n";
+                                cin >> level;
+                            }
+                        }
+                    }
+                }
+                else if (option == "activate") {
+                    cout << "Where is the knight you'd like to activate?\n";
+                    int loc;
+                    cin >> loc;
+                    string cancel;
+                    while (cancel != "yes" && !gameBoard.canActivateKnight(loc, thePlayer)) {
+                        cout << "You can't activate a knight there.\nWould you like to cancel?\n";
+                        cin >> cancel;
+                        if (cancel != "yes") {
+                            cout << "Where is the knight you'd like to activate?\n";
+                            cin >> loc;
+                        }
+                    } if (cancel != "yes") activateKnight(loc, thePlayer);
+                }
+            } else if (toBuild == "improve") {
+                cout << "Which type would you like to improve?\n";
+                string type;
+                cin >> type;
+                if (type != "cancel" && thePlayer->buildCitImprove(type)) {
+                    if (type == "science" && thePlayer->hasAbility("science")) hasAqueduct.emplace(thePlayer); // if he flips more than once while hasAbility is true, the set doesn't create a duplicate
+                    cout << thePlayer->getName() << " builds a city improvement for " << type << endl;
+                }
+            }
+            if (thePlayer->getPoints() > leader->getPoints()) leader = thePlayer;
+            cout << "Would you like to keep building?\n";
+            string answer;
+            cin >> answer;
+            if (answer == "no") return;
+            cout << "What would you like to build?\n";
+            cin >> toBuild;
+        }
     }
     
     void turn() {
@@ -332,7 +553,12 @@ private:
         cout << "What would you like to do?\n";
         cin >> action;
         while (action != "end") {
-            
+            // include actions like "viewGameState"/"viewPlayerState"...etc
+            if (action == "build") {
+                buildActions();
+            }
+            cout << "What would you like to do?\n";
+            cin >> action;
         }
         // NOTE: it should be the responsibility of these actions in this class to
         // check if the action is compatibile with the STATE OF THE BOARD.
@@ -348,6 +574,7 @@ private:
                 // CitImprove // if it's science, check if he has the ability, if he does, add him to the set
             // upgrade
             // deactivate knight
+                // note: i'll need a different method to check if it's a valid knight move
             // trade
             // play progress card
             // end turn

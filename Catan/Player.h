@@ -24,6 +24,7 @@ namespace Catan {
         int getPoints() const;
         int getCapacity() const;
         int getHandSize() const;
+        int getKnightStrength() const;
         int getCitImprovements(const std::string& type) const; // number of flips
         bool hasAbility(const std::string& type) const; // does the player have a special ability from flips
         bool hasResource(const std::string& resource) const;
@@ -33,14 +34,14 @@ namespace Catan {
         bool buildSettlement(bool firstTurn = false);
         bool buildRoad(bool firstTurn = false);
         bool buildCity(bool firstTurn = false);
-        bool buildknight(); // this only builds level 1 knights. if a player wants to build a level two knight in one move, the program will execute a buildKnight() followed by an upgradeKnight
-        bool upgradeKnight(char level);
-        bool activateKnight();
+        bool buildCitImprove(const std::string& type);
+        bool buildWall();
+        bool buildKnight(char level);
+        bool upgradeKnight(char currLevel, char toLevel);
+        bool activateKnight(int strength);
         bool deactivateKnight();
         bool moveRobber();
         void rob(Player* other);
-        bool buildCitImprove(const std::string& type);
-        bool buildWall();
         void collectResource(const std::string& resource); // includes commodities
         void defendCatan();
     private:
