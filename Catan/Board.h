@@ -122,6 +122,8 @@ namespace Catan{
         void display() const;
         void distributeResources(int roll) const;
         int getKnightLevel(int loc) const; // get the level of a knight at that location
+        int getRobberLoc() const;
+        Metropolis* removeMetropolis(int loc);
         bool isValidSetLoc(int loc, Player* player) const; // node loc
         bool isValidCityLoc(int loc, Player* player) const; // node loc
         bool isValidRoadLoc(int loc, Player* player) const; // edge loc
@@ -129,13 +131,21 @@ namespace Catan{
         bool isValidKnightLoc(int loc, Player* player, bool upgrade) const; // node loc
         bool isValidWallLoc(int loc, Player* player) const; // node loc
         bool isValidRobberLoc(int loc) const; // tile loc
+        bool isOpenCityLoc(int loc, Player* player) const; // node loc
         bool canActivateKnight(int loc, Player* player) const; // node loc
-        void placeSettlement(int loc, Settlement* settlement);
-        void placeRoad(int loc, Player* player);
+        bool canDeactivateKnight(int loc, Player* player) const; // node loc
+        bool canMoveKnight(Player* player, int source, int destination); // node locs;
+        bool nodeIsNextToTile(int nodeLoc, int tileLoc) const;
+        void placeSettlement(int loc, Settlement* settlement); // node loc
+        int placeRoad(int loc, Player* player); // edge loc. returns the length of that road
         void placeCity(int loc, City* city, bool setUp = false);
+        void removeCity(int loc);
         void placeWall(int loc);
         void placeKnight(int loc, Knight* knight);
+        void placeMetropolis(int loc, Metropolis* met);
         void activateKnight(int loc);
+        void deactivateKnight(int loc);
+        void moveKnight(int source, int destination);
         std::set<Player*> placeRobber(int newLoc); // returns a set of the players that can be robbed as a result of this action
     private:
         void create_board();
@@ -146,11 +156,12 @@ namespace Catan{
         void log_tile(Tile* the_tile);
         void generate_nodes();
         void link_nodes(int& edge_id, Node& node1, Node& node2); // adds node1 to node2's adj_lst and vice versa
+        int getRoadLength(Edge* edge); // edge loc
         std::map<int, Node*> nodes_map;
         std::map<int, Edge*> edges_map;
         std::map<int, Tile*> tiles_map;
         std::map<int, std::set<Tile*>> num_tiles; // map the number tiles to the hex tiles with those numbers
-        int robberLoc;
+        int robberLoc; // id num of the tile the robber is on
     };
 }
 

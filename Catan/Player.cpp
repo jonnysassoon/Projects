@@ -30,7 +30,7 @@ namespace Catan {
     
     Player::Player(const string& name) : vp(0), cap(7), handSize(0), roadLength(0),
         knightStrength(0),
-        name(name), collected(false),
+        name(name), collected(false), metropoli(0),
         // TODO: how many pieces for each category does the player start with?
         pieces({{"settlement", 5}, {"city", 4}, {"road", 15}, {"knight1", 2}, {"knight2", 2}, {"knight1", 2}, {"wall", 3}}),
         resources({{"sheep", 0}, {"brick", 0}, {"wheat", 0}, {"wood", 0}, {"ore", 0}, {"coin", 0}, {"paper", 0}, {"silk", 0}}),
@@ -74,7 +74,7 @@ namespace Catan {
             if (pieces["settlement"] < 1) return false;
             spend(necessary);
         }
-        pieces["settlement"]--;
+        pieces["settlement"]--; // Note: if a player built 5 settlements, 1 city and gets razed, he loses the city but still is able to build a settlement. In such a case, pieces["settlements"] will be -1. This shouldn't cause gameplay error because he still won't be able to build another settlement, and once he upgrades some settlement to a city, pieces["settlement"] will accurately reflect that he has 0.
         vp++;
         return true;
     }
@@ -106,14 +106,25 @@ namespace Catan {
         return true;
     }
     
+    bool Player::destroyCity() {
+        if (pieces["city"] == 4) return false; // I don't think this is ever really necessary
+        vp -= 2; // we deduct 2 because he will immediately build a free settlement
+        pieces["city"]++;
+        return true;
+    }
+    
     bool Player::buildCitImprove(const string& type) {
         int pastFlips = Player::getCitImprovements(type);
+        if (pieces["city"] == 4 || // if he hasn't yet built a city...
+            (4 - pieces["city"] == metropoli // ...or he has a metropolis on all the cities he did built and...
+             && pastFlips == 3) // ...he wants to do his fourth flip (which would give him another metropolis)
+            ) return false;
         if (pastFlips == 5) return false; // maxed out on flips
         string commodity;
         if (type == "science") commodity = "paper";
         else if (type == "politics") commodity = "coin";
         else if (type == "trade") commodity = "silk";
-        if (resources[commodity] < pastFlips+1) return false; //insufficient
+        if (resources[commodity] < pastFlips+1) return false; // insufficient
         vector<string> necessary;
         for (int i = 0; i < pastFlips+1; i++) necessary.push_back(commodity);
         spend(necessary);
@@ -176,9 +187,21 @@ namespace Catan {
         knightStrength += strength;
         return true;
     }
+
+    bool Player::deactivateKnight(int strength) {
+        knightStrength -= strength;
+        return true;
+    }
     
-    bool Player::deactivateKnight() {
-        
+    bool Player::buildMetropolis() {
+        vp += 2;
+        metropoli++;
+        return true;
+    }
+    
+    bool Player::removeMetropolis() {
+        vp -= 2;
+        metropoli--;
         return true;
     }
     

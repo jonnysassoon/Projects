@@ -10,6 +10,7 @@
 #include <algorithm> // shuffle
 #include <random> // random engine
 #include <chrono> // seed val
+#include <queue> // canMoveKnight()
 using namespace std;
 
 namespace Catan{
@@ -35,10 +36,21 @@ namespace Catan{
     }
     
     Board::~Board() {
-        for (int nodeNum = 1; nodeNum <= total_nodes(); nodeNum++){
-            Node* toDelete = nodes_map[nodeNum];
-            delete toDelete; // node's deconstructor handles all edges, cities, and pieces in play
+        for (int edgeNum = 1; edgeNum <= total_edges(); edgeNum++) {
+            Edge* toDelete = edges_map[edgeNum];
+            delete toDelete;
             toDelete = nullptr;
+        }
+        for (int nodeNum = 1; nodeNum <= total_nodes(); nodeNum++) {
+            Node* toDelete = nodes_map[nodeNum];
+            delete toDelete;
+            toDelete = nullptr;
+        }
+        for (int tileNum = 1; tileNum <= total_tiles(); tileNum++) {
+            Tile* toDelete = tiles_map[tileNum];
+            delete toDelete;
+            toDelete = nullptr;
+
         }
         nodes_map.clear();
         edges_map.clear();
@@ -82,6 +94,19 @@ namespace Catan{
         Node* node = nodes_map.at(loc);
         if (node->knight == nullptr) return -1;
         return node->knight->strength;
+    }
+    
+    int Board::getRobberLoc() const { return robberLoc; }
+    
+    int Board::getRoadLength(Edge* edge) {
+        
+        return 0;
+    }
+    
+    Metropolis* Board::removeMetropolis(int loc) {
+        Metropolis* met = nodes_map[loc]->city->metropolis;
+        nodes_map[loc]->city->metropolis = nullptr;
+        return met;
     }
     
     bool Board::isValidSetLoc(int loc, Player* player) const {
@@ -152,10 +177,56 @@ namespace Catan{
         return (loc >=1 && loc <= total_tiles()) && loc != robberLoc; // it's within tile range, and the robber isn't there
     }
     
+    bool Board::isOpenCityLoc(int loc, Player* player) const {
+        if (loc < 1 || loc > total_nodes()) return false;
+        Node* node = nodes_map.at(loc);
+        return node->city != nullptr && node->city->owner == player && node->city->metropolis == nullptr;
+    }
+    
     bool Board::canActivateKnight(int loc, Player* player) const {
         if (loc < 1 || loc > total_nodes()) return false;
         Node* node = nodes_map.at(loc);
         return node->knight != nullptr && node->knight->owner == player && !node->knight->activated; // there's an inactive knight that's owned by the player on this location
+    }
+    
+    bool Board::canDeactivateKnight(int loc, Player* player) const {
+        if (loc < 1 || loc > total_nodes()) return false;
+        Node* node = nodes_map.at(loc);
+        return node->knight != nullptr && node->knight->owner == player && node->knight->activated && !node->knight->activeThisRound; // there's an active knight that's owned by this player that was not activated this round
+    }
+    
+    bool Board::canMoveKnight(Player* player, int source, int destination) {
+        if (source < 1 || source > total_nodes()) return false;
+        if (destination < 1 || destination > total_nodes()) return false;
+        Node* sourceNode = nodes_map.at(source);
+        Node* destNode = nodes_map.at(destination);
+        if (destNode->owner != nullptr) return false; // there's already something here
+        /* BFS for the destination */
+        set<Node*> visited;
+        queue<Node*> nodeQ({sourceNode});
+        while (nodeQ.size() != 0) {
+            Node* curr = nodeQ.front();
+            nodeQ.pop();
+            visited.emplace(curr);
+            if (curr == destNode) return true; // we have a valid path
+            for (Edge* edge : curr->adj_edges) {
+                if (edge->owner == player) {
+                    for (Node* node : edge->adj_nodes) {
+                        if (visited.find(node) == visited.end()) nodeQ.push(node);
+                    }
+                }
+            }
+        }
+        return false;
+    }
+    
+    bool Board::nodeIsNextToTile(int nodeLoc, int tileLoc) const {
+        if (nodeLoc < 1 || nodeLoc > total_nodes() || tileLoc < 1 || tileLoc > total_tiles()) return false; // just a precaution, shouldn't ever be necessary
+        Node* node = nodes_map.at(nodeLoc);
+        for (Tile* tileptr : node->adj_tiles) {
+            if (tileptr->int_id == tileLoc) return true;
+        }
+        return false;
     }
     
     void Board::placeSettlement(int loc, Settlement* settlement) {
@@ -167,9 +238,10 @@ namespace Catan{
         }
     }
     
-    void Board::placeRoad(int loc, Player* player) {
+    int Board::placeRoad(int loc, Player* player) {
         Edge* edge = edges_map[loc];
         edge->owner = player;
+        return getRoadLength(edge);
     }
     
     void Board::placeCity(int loc, City* city, bool setUp) {
@@ -179,13 +251,20 @@ namespace Catan{
         delete oldSet;
         node->city = city;
         node->owner = city->owner; // in case of first turn where owner isn't assigned. otherwise, this is redundant
-        for (Tile* tileptr : node->adj_tiles) {
-            num_tiles[tileptr->num_tile].emplace(tileptr); // include this tile in the set of tiles that its number maps to
-        }
         if (setUp) { // give player resources of neighboring hex tiles
+            for (Tile* tileptr : node->adj_tiles) {
+                num_tiles[tileptr->num_tile].emplace(tileptr); // this is only necessary during setup, otherwise, you would  already have a settlement there, therefore it would be in the map.
+            }
             Player* player = city->owner;
             for (Tile* tilptr : node->adj_tiles)player->collectResource(tilptr->resource);
         }
+    }
+    
+    void Board::removeCity(int loc) {
+        Node* node = nodes_map[loc];
+        City* city = node->city;
+        node->city = nullptr;
+        delete city;
     }
     
     void Board::placeWall(int loc) {
@@ -200,9 +279,30 @@ namespace Catan{
         node->owner = knight->owner;
     }
     
+    void Board::placeMetropolis(int loc, Metropolis* met) {
+        Node* node = nodes_map[loc];
+        node->city->metropolis = met;
+    }
+    
     void Board::activateKnight(int loc) {
         Node * node = nodes_map[loc];
         node->knight->activated = true;
+        node->knight->activeThisRound = true; // TODO: what's the logic to set this to false? Maybe after a players turn, in the game, all of the players data is refreshed which would turn his knights->activethisround to false.
+    }
+    
+    void Board::deactivateKnight(int loc) {
+        Node* node = nodes_map[loc];
+        node->knight->activated = false;
+    }
+    
+    void Board::moveKnight(int source, int destination) {
+        Node* sourceNode = nodes_map.at(source);
+        Node* destNode = nodes_map.at(destination);
+        Knight* knight = sourceNode->knight;
+        sourceNode->knight = nullptr;
+        sourceNode->owner = nullptr;
+        destNode->knight = knight;
+        destNode->owner = knight->owner;
     }
     
     set<Player*> Board::placeRobber(int newLoc) {
@@ -210,6 +310,7 @@ namespace Catan{
         prevTile->blocked = false;
         Tile* newTile = tiles_map[newLoc];
         newTile->blocked = true;
+        robberLoc  = newLoc;
         set<Player*> toRob;
         for (Node* node : newTile->adj_nodes) {
             if (node->owner != nullptr && node->knight == nullptr) toRob.emplace(node->owner);
@@ -221,6 +322,7 @@ namespace Catan{
         Edge* edge(new Edge(edge_id));
         edges_map[edge_id] = edge;
         cout << "Now adding edge " << edge_id << " to nodes " << node1.int_id << " and " << node2.int_id << endl;
+        cout << "Edge address: " << edge << endl;
         node1.adj_nodes.insert(&node2);
         node1.adj_edges.insert(edge);
         edge->adj_nodes.insert(&node1);
@@ -381,20 +483,14 @@ namespace Catan{
     
     Board::Node::Node(int int_id) : int_id(int_id), owner(nullptr), knight(nullptr), settlement(nullptr), city(nullptr) {}
     Board::Node::~Node() { // owner is deleted in the game's deconstructor
+        // Consider if deleting these pointers could cause malloc
         delete knight;
         knight = nullptr;
         delete settlement;
         settlement = nullptr;
         delete city;
         city = nullptr;
-        for (Edge* edge : adj_edges) {
-            delete edge;
-            edge = nullptr;
-        } adj_edges.clear();
-        for (Tile* tile: adj_tiles) {
-            delete tile;
-            tile = nullptr;
-        } adj_tiles.clear();
+        
     }
     
     Board::Edge::Edge(int int_id) : int_id(int_id), owner(nullptr) {}
@@ -413,6 +509,13 @@ namespace Catan{
         for (Board::Node* nodeptr : rhs.adj_nodes) {
             cout << nodeptr->int_id;
             if (iter != rhs.adj_nodes.size()-1) cout << ", ";
+            iter++;
+        }
+        cout << "], [";
+        iter = 0;
+        for (Board::Edge* edgptr : rhs.adj_edges) {
+            cout << edgptr->int_id;
+            if (iter != rhs.adj_edges.size()-1) cout << ", ";
             iter++;
         }
         cout << "]";

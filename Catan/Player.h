@@ -11,11 +11,12 @@
 #include <map>
 #include <set>
 
+// TODO: consider as a data member of every player a table containing the build prices for all pieces. Why might this be beneficial? Because when a player plays a progress card that changes the prices of something, that card will just temporarily change the table. Note: this might change the logic in every Player::buildX method viz. how we figure out if he has the necessary amount for all resource.
+
 namespace Catan {
     class Knight;
     class Progress;
     
-    // TODO: double check - given change of implementation approach, all loc arguments may be uneccessary
     class Player {
     public:
         Player(const std::string& name);
@@ -34,13 +35,15 @@ namespace Catan {
         bool buildSettlement(bool firstTurn = false);
         bool buildRoad(bool firstTurn = false);
         bool buildCity(bool firstTurn = false);
+        bool destroyCity();
         bool buildCitImprove(const std::string& type);
         bool buildWall();
         bool buildKnight(char level);
         bool upgradeKnight(char currLevel, char toLevel);
-        bool activateKnight(int strength);
-        bool deactivateKnight();
-        bool moveRobber();
+        bool activateKnight(int strength); // strength of the knight
+        bool deactivateKnight(int strength);
+        bool buildMetropolis();
+        bool removeMetropolis();
         void rob(Player* other);
         void collectResource(const std::string& resource); // includes commodities
         void defendCatan();
@@ -51,6 +54,7 @@ namespace Catan {
         int roadLength;
         int knightStrength;
         bool collected;
+        int metropoli;
         std::string name;
         std::map<std::string, int> pieces; // map piece names to the amount player has
         std::map<std::string, int> resources; // map resource/commodity names to the amount player has
