@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		4755AD86208121F200D00C58 /* Settlers.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4755AD84208121F200D00C58 /* Settlers.cpp */; };
 		475CCF212023E72300C372E8 /* Player.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 475CCF202023E72300C372E8 /* Player.cpp */; };
 		475CCF232024EE1500C372E8 /* Pieces.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 475CCF222024EE1500C372E8 /* Pieces.cpp */; };
 		47AE496D2028CC120055E2A8 /* Card.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 47AE496C2028CC120055E2A8 /* Card.cpp */; };
@@ -28,10 +29,12 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		4724D1D42075B2AE004F3DFC /* Settlers.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Settlers.h; sourceTree = SOURCE_ROOT; };
 		47480D0620083A3E008E4B54 /* Pieces.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Pieces.h; sourceTree = SOURCE_ROOT; };
 		47480D0720083B58008E4B54 /* Player.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Player.h; sourceTree = SOURCE_ROOT; };
 		47480D0820083BBA008E4B54 /* Card.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Card.h; sourceTree = SOURCE_ROOT; };
 		47480D0920083C77008E4B54 /* Outline.rtf */ = {isa = PBXFileReference; lastKnownFileType = text.rtf; path = Outline.rtf; sourceTree = SOURCE_ROOT; };
+		4755AD84208121F200D00C58 /* Settlers.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Settlers.cpp; sourceTree = SOURCE_ROOT; };
 		475CCF202023E72300C372E8 /* Player.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Player.cpp; sourceTree = SOURCE_ROOT; };
 		475CCF222024EE1500C372E8 /* Pieces.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Pieces.cpp; sourceTree = SOURCE_ROOT; };
 		47AE496C2028CC120055E2A8 /* Card.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Card.cpp; sourceTree = SOURCE_ROOT; };
@@ -74,6 +77,8 @@
 			isa = PBXGroup;
 			children = (
 				47BDD50E1FCC9FDC00EF3B07 /* main.cpp */,
+				4724D1D42075B2AE004F3DFC /* Settlers.h */,
+				4755AD84208121F200D00C58 /* Settlers.cpp */,
 				47BDD5151FCCA00500EF3B07 /* Board.cpp */,
 				47BDD51C1FCCBC6B00EF3B07 /* Board.h */,
 				47BDD5181FCCB89100EF3B07 /* ConcentricGraph.h */,
@@ -147,6 +152,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				475CCF212023E72300C372E8 /* Player.cpp in Sources */,
+				4755AD86208121F200D00C58 /* Settlers.cpp in Sources */,
 				47BDD5171FCCA00500EF3B07 /* Board.cpp in Sources */,
 				47BDD51B1FCCB94200EF3B07 /* ConcentricGraph.cpp in Sources */,
 				47AE496D2028CC120055E2A8 /* Card.cpp in Sources */,

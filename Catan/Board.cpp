@@ -99,8 +99,65 @@ namespace Catan{
     int Board::getRobberLoc() const { return robberLoc; }
     
     int Board::getRoadLength(Edge* edge) {
-        
-        return 0;
+        /*
+          _/
+         / \_/
+         \_/
+         
+         Want to find the max euler path for the system that this road is a part of
+         1. find all odd degree nodes that are reachable by our roads
+         2. for each one, get the euler path by doing a DFS that traverses all connected, unvisited edges
+         3. take the max
+         */
+        // BFS for all odd degree nodes to search for largest Euler path
+        set<Node*> odd_degs;
+        set<Node*> visited;
+        queue<Node*> next_q;
+        Player* owner = edge->owner;
+        for (Node* node : edge->adj_nodes) {
+            if (node->owner == owner || node->owner == nullptr) next_q.push(node); // initialize the qeueu to have all nodes that border this edge and are owned by either the same person that built the edge or no one.
+        }
+        while (!(next_q.size() == 0)) {
+            Node* curr = next_q.front();
+            next_q.pop();
+            visited.insert(curr);
+            for (Edge* incEdge : curr->adj_edges) { // go to other nodes through the edges that stem from current node
+                if (incEdge->owner == owner) { // exclusively if we have OUR own path to some other node
+                    for (Node* aNode : incEdge->adj_nodes) {
+                        if (visited.find(aNode) == visited.end() && // if we have not yet seen this node
+                            (aNode->owner == nullptr || aNode->owner == owner)) // and it's also not owned by someone else
+                        {
+                            next_q.push(aNode);
+                        }
+                    }
+                }
+            }
+            int deg = 0;
+            for (Edge* anEdge : curr->adj_edges) if (anEdge->owner == owner) deg++; // check the number of our edges the node connects to
+            if (deg % 2 == 1) odd_degs.insert(curr);
+        }
+        int max_path = -1;
+        for (Node* node : odd_degs) { // i feel like there's *a lot* of redundancy checking every odd degree node
+            set<Edge*> visited;
+            int len = pathLength(node, owner, visited);
+            if (len > max_path) max_path = len;
+        }
+        if (odd_degs.size() == 0) max_path = 6; // the only time this is possible is if the road completed a single hex cycle
+        return max_path;
+    }
+    
+    int Board::pathLength(Node* node, Player* owner, set<Edge*>& visited) {
+        set<Edge*> edges = node->adj_edges;
+        int max_len = 0;
+        for (Edge* edge : edges) {
+            if (visited.find(edge) == visited.end() && edge->owner == owner) { // if the edge hasn't been seen AND it's valid for our chain
+                visited.insert(edge);
+                Node* next = (*edge->adj_nodes.begin() != node) ? *(edge->adj_nodes.begin()) : *(edge->adj_nodes.end()--); // get the other node that edge links to that isn't this node
+                int len = pathLength(next, owner, visited) + 1; // the length of this chain is the length of the adj node + 1
+                if (len > max_len) max_len = len;
+            }
+        }
+        return max_len;
     }
     
     Metropolis* Board::removeMetropolis(int loc) {
@@ -287,7 +344,7 @@ namespace Catan{
     void Board::activateKnight(int loc) {
         Node * node = nodes_map[loc];
         node->knight->activated = true;
-        node->knight->activeThisRound = true; // TODO: what's the logic to set this to false? Maybe after a players turn, in the game, all of the players data is refreshed which would turn his knights->activethisround to false.
+        node->knight->activeThisRound = true;
     }
     
     void Board::deactivateKnight(int loc) {
@@ -303,6 +360,12 @@ namespace Catan{
         sourceNode->owner = nullptr;
         destNode->knight = knight;
         destNode->owner = knight->owner;
+    }
+    
+    void Board::removeSummonSickness(int loc) {
+        Node* node = nodes_map.at(loc);
+        Knight* knight = node->knight;
+        knight->activeThisRound = false;
     }
     
     set<Player*> Board::placeRobber(int newLoc) {

@@ -23,9 +23,15 @@ namespace Catan {
         for (Player* playptr : players) delete playptr;
         // TODO: clear all collections
     }
-    void Settlers::showBoard() {
+    
+    void Settlers::showBoard() const {
         gameBoard.display();
     }
+    
+    void Settlers::state() const {
+        
+    }
+    
     void Settlers::play() { // game engine
         /* Roll for first */
         map<Player*, int> firstRoll;
@@ -242,7 +248,6 @@ namespace Catan {
                     if (thePlayer->getCitImprovements(type) >= 4) {
                         pair<Player*, int> leaderData = metropoli[type];
                         Player* leader = leaderData.first;
-                        int cityLoc = leaderData.second;
                         if (leader == nullptr ||
                             (leader != nullptr && leader != thePlayer &&
                              leader->getCitImprovements(type) > thePlayer->getCitImprovements(type))
@@ -285,8 +290,16 @@ namespace Catan {
     
     bool Settlers::buildRoad(int loc, Player* player, bool firstTurn) {
         if (player->buildRoad(firstTurn)) {
-            gameBoard.placeRoad(loc, player); // this should return an int of the road size
+            int roadLength = gameBoard.placeRoad(loc, player);
             cout << player->getName() << " builds a road on position " << loc << endl;
+            if (roadLength > longestRoad.second) { // is this road longer than the current longest road?
+                longestRoad.second = roadLength;
+                if (player != longestRoad.first) { // the person with longest road is over taken
+                    longestRoad.first->removeLongestRoad();
+                    player->giveLongestRoad();
+                    longestRoad.first = player;
+                }
+            }
             return true;
         }
         cout << player->getName() << " could not build a road.\n";
@@ -350,6 +363,7 @@ namespace Catan {
             cout << player->getName() << " activated a level " << strength << " knight on position " << loc << endl;
             defense += strength;
             activeKnightLocs[loc] = player; // map this newly activated location to the player who owns it
+            actThisTurnLocs.emplace(loc); // keep track of the fact that you activated this knight
             /* fix the strength leader order */
             int iter = 0;
             while (strengthLeaders[iter] != player) iter++; // find index of the person who just activated
@@ -651,10 +665,12 @@ namespace Catan {
             if (action == "prog") {
                 // how will this work?
             }
+            if (thePlayer->getPoints() >= 13) return;
             cout << "What would you like to do?\n";
             cin >> action;
         }
-        
+        for (int knightLoc : actThisTurnLocs) gameBoard.removeSummonSickness(knightLoc);
+        activeKnightLocs.clear();
         // TODO: implement keeping track of road chains
         // no need to keep track of them. Just keep track of the size of the longest one
         // everytime the player builds a road, after checking if it's a legal road placement, the board will run a DFS of sorts to calculate the longest path from that road until the end of its longest chain. There has to be a way to not do a DFS *every* time you build a road...
@@ -670,7 +686,7 @@ namespace Catan {
         
         
         // NOTE: it should be the responsibility of these actions in this class to
-        // check if the action is compatibile with the STATE OF THE BOARD.
+        // check if the action is compatabile with the STATE OF THE BOARD.
         // The corresponding methods in the player class will check if the action is
         // within the players current abilities (resources, available pieces, etc)
         // actions
@@ -683,7 +699,6 @@ namespace Catan {
         // CitImprove // if it's science, check if he has the ability, if he does, add him to the set
         // upgrade
         // deactivate knight
-        // note: i'll need a different method to check if it's a valid knight move
         // trade
         // play progress card
         // end turn

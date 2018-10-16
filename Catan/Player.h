@@ -47,11 +47,14 @@ namespace Catan {
         void rob(Player* other);
         void collectResource(const std::string& resource); // includes commodities
         void defendCatan();
+        void giveLongestRoad();
+        void removeLongestRoad();
     private:
         int vp; // victory points
         int cap; // how many resources/commodities can they have
         int handSize; // number of resources in hand currently
         int roadLength;
+        bool hasLongestRoad;
         int knightStrength;
         bool collected;
         int metropoli;

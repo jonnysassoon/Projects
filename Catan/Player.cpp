@@ -28,7 +28,7 @@ using namespace std;
     // will be implemented in the main.cpp file in the Settlers class
 namespace Catan {
     
-    Player::Player(const string& name) : vp(0), cap(7), handSize(0), roadLength(0),
+    Player::Player(const string& name) : vp(0), cap(7), handSize(0), roadLength(0), hasLongestRoad(false),
         knightStrength(0),
         name(name), collected(false), metropoli(0),
         // TODO: how many pieces for each category does the player start with?
@@ -79,7 +79,7 @@ namespace Catan {
         return true;
     }
     
-    bool Player::buildRoad(bool firstTurn) { // TODO: check road length!!
+    bool Player::buildRoad(bool firstTurn) {
         if (!firstTurn) {
             vector<string> necessary = {"brick", "wood"};
             for (const string& aRes : necessary) {
@@ -258,6 +258,16 @@ namespace Catan {
     }
     
     void Player::defendCatan() { vp++; }
+    
+    void Player::giveLongestRoad() {
+        hasLongestRoad = true;
+        vp += 2;
+    }
+    
+    void Player::removeLongestRoad() {
+        hasLongestRoad = false;
+        vp -= 2;
+    }
     
     void Player::spend(const vector<string>& spending){
         for (const string& resource : spending) {

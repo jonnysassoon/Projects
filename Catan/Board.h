@@ -74,7 +74,7 @@ namespace Catan{
     struct Pasture : public CommTile {
         Pasture();
     };
-    
+    // TODO: I'll need an extra buffer layer of hexes arround the actual tiles which will serve as the water.
     class Board : public ConcentricGraph {
         struct Edge;
         struct Tile;
@@ -124,6 +124,7 @@ namespace Catan{
         int getKnightLevel(int loc) const; // get the level of a knight at that location
         int getRobberLoc() const;
         Metropolis* removeMetropolis(int loc);
+        // IDEA: what if i make all isValidX/placeX template functions that handle switch cases. Actually, I don't really like this idea. If something fails, it's easier for me to have everything compartmentalized so I can look at this individually
         bool isValidSetLoc(int loc, Player* player) const; // node loc
         bool isValidCityLoc(int loc, Player* player) const; // node loc
         bool isValidRoadLoc(int loc, Player* player) const; // edge loc
@@ -134,7 +135,7 @@ namespace Catan{
         bool isOpenCityLoc(int loc, Player* player) const; // node loc
         bool canActivateKnight(int loc, Player* player) const; // node loc
         bool canDeactivateKnight(int loc, Player* player) const; // node loc
-        bool canMoveKnight(Player* player, int source, int destination); // node locs;
+        bool canMoveKnight(Player* player, int source, int destination); // node locs
         bool nodeIsNextToTile(int nodeLoc, int tileLoc) const;
         void placeSettlement(int loc, Settlement* settlement); // node loc
         int placeRoad(int loc, Player* player); // edge loc. returns the length of that road
@@ -146,6 +147,7 @@ namespace Catan{
         void activateKnight(int loc);
         void deactivateKnight(int loc);
         void moveKnight(int source, int destination);
+        void removeSummonSickness(int loc);
         std::set<Player*> placeRobber(int newLoc); // returns a set of the players that can be robbed as a result of this action
     private:
         void create_board();
@@ -157,6 +159,7 @@ namespace Catan{
         void generate_nodes();
         void link_nodes(int& edge_id, Node& node1, Node& node2); // adds node1 to node2's adj_lst and vice versa
         int getRoadLength(Edge* edge); // edge loc
+        int pathLength(Node* node, Player* owner, std::set<Edge*>& visited); // get max euler path starting with this node
         std::map<int, Node*> nodes_map;
         std::map<int, Edge*> edges_map;
         std::map<int, Tile*> tiles_map;

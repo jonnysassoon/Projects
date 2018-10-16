@@ -16,7 +16,7 @@
 #include <iostream>
 #include <set>
 #include <vector>
-
+#include <stack>
 
 namespace Catan {
     class Settlers {
@@ -64,13 +64,14 @@ namespace Catan {
     public:
         Settlers(const std::vector<std::string>& playerNames);
         ~Settlers();
-        void showBoard();
+        void showBoard() const;
+        void state() const;
         void play(); // game engine
     private:
         std::vector<Player*> players;
-        std::vector<Progress*> scienceCards;
-        std::vector<Progress*> politicsCards;
-        std::vector<Progress*> tradeCards;
+        std::stack<Progress*> scienceCards;
+        std::stack<Progress*> politicsCards;
+        std::stack<Progress*> tradeCards;
         Board gameBoard;
         Dice dice;
         BarbarianShip barbarians;
@@ -81,6 +82,7 @@ namespace Catan {
         std::set<Player*> hasAqueduct; // special science ability
         std::pair<Player*, int> longestRoad;
         std::map<int, Player*> activeKnightLocs;
+        std::set<int> actThisTurnLocs; // keep track of all the knights that were activated this turn. When the turn is over, reset them
         std::map<std::string, std::pair<Player*, int>> metropoli; // map the type to a tuple of the Player who has it along with the location of that city
         Player* leader;
         int turnTicker;

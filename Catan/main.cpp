@@ -15,7 +15,7 @@ using namespace Catan;
 
 // When I destruct the board, 
 int main() {
-    vector<string> names{"Jon", "Alice", "Bob", "Bill"};
+    vector<string> names{"Alice", "Bob", "Charlie", "Dan"};
     Settlers game(names);
     game.showBoard();
 }

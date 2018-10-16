@@ -11,6 +11,5 @@ using namespace std;
 
 namespace Catan {
     
-    Resource::Resource(const string& type) : type(type) {}
     
 }
