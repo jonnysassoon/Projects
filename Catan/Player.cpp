@@ -249,7 +249,6 @@ namespace Catan {
         for (auto keyIter = other->resources.begin(); keyIter != other->resources.end(); keyIter++) {
             for (int i = 0; i < keyIter->second; i++) othersHand.push_back(keyIter->first); // if he doesn't have any, this loop won't begin
         }
-        srand(time(nullptr));
         int randomNum = rand();
         string pick = othersHand[randomNum % othersHand.size()];
         other->resources[pick]--;
