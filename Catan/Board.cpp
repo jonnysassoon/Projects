@@ -31,6 +31,7 @@ namespace Catan{
     
     Pasture::Pasture() : CommTile("pasture", "sheep", "silk") {}
     
+    
     Board::Board(int layer) : ConcentricGraph(layer){
         create_board();
     }
@@ -114,6 +115,13 @@ namespace Catan{
         }
     }
     
+    vector<int> Board::getAdjEdges(int loc){
+        vector<int> edge_ids;
+        Node* node = nodes_map.at(loc);
+        for (Edge* edge : node->adj_edges) edge_ids.push_back(edge->int_id);
+        return edge_ids;
+    }
+    
     int Board::getKnightLevel(int loc) const {
         if (loc < 1 || loc > total_nodes()) return -1;
         Node* node = nodes_map.at(loc);
@@ -177,7 +185,11 @@ namespace Catan{
         for (Edge* edge : edges) {
             if (visited.find(edge) == visited.end() && edge->owner == owner) { // if the edge hasn't been seen AND it's valid for our chain
                 visited.insert(edge);
-                Node* next = (*edge->adj_nodes.begin() != node) ? *(edge->adj_nodes.begin()) : *(edge->adj_nodes.end()--); // get the other node that edge links to that isn't this node
+                Node* next;
+                Node* first = *(edge->adj_nodes.begin());
+                Node* second = *(edge->adj_nodes.begin()++);
+                if (first != node) next = first;
+                else next = second; // get the other node that edge links to that isn't this node
                 int len = pathLength(next, owner, visited) + 1; // the length of this chain is the length of the adj node + 1
                 if (len > max_len) max_len = len;
             }
@@ -191,16 +203,19 @@ namespace Catan{
         return met;
     }
     
-    bool Board::isValidSetLoc(int loc, Player* player) const {
+    bool Board::isValidSetLoc(int loc, Player* player, bool firstTurn) const {
         if (loc < 1 || loc > total_nodes()) return false;
         Node* node = nodes_map.at(loc);
         if (node->owner == nullptr) {
             for (Node* nodptr : node->adj_nodes) {
                 if (nodptr->city != nullptr || nodptr->settlement != nullptr) return false; // of the adjacent locations, one of them is already taken with a city/settlement
             }
-            for (Edge* edgptr : node->adj_edges) {
-                if (edgptr->owner == player) return true;
+            if(!firstTurn) {
+                for (Edge* edgptr : node->adj_edges) {
+                    if (edgptr->owner == player) return true;
+                }
             }
+            return true; // if it is the first turn, it is valid automatically
         }
         return false;
     }

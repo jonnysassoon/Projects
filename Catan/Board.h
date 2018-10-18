@@ -122,11 +122,12 @@ namespace Catan{
         void display() const;
         void dispSetCit() const;
         void distributeResources(int roll) const;
+        std::vector<int> getAdjEdges(int loc); // node loc
         int getKnightLevel(int loc) const; // get the level of a knight at that location
         int getRobberLoc() const;
         Metropolis* removeMetropolis(int loc);
         // IDEA: what if i make all isValidX/placeX template functions that handle switch cases. Actually, I don't really like this idea. If something fails, it's easier for me to have everything compartmentalized so I can look at this individually.
-        bool isValidSetLoc(int loc, Player* player) const; // node loc
+        bool isValidSetLoc(int loc, Player* player, bool firstTurn = false) const; // node loc
         bool isValidCityLoc(int loc, Player* player) const; // node loc
         bool isValidRoadLoc(int loc, Player* player) const; // edge loc
         bool isValidFirstRoadLoc(int roadLoc, int settLoc) const; // the settlement is already validated, no need for player pointer

@@ -262,6 +262,7 @@ namespace Catan {
         resources[resource]++;
         handSize++;
         collected = true;
+        cout << name << " collects a " << resource << endl;
     }
     
     void Player::defendCatan() { vp++; }

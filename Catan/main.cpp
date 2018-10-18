@@ -14,8 +14,10 @@ using namespace std;
 using namespace Catan;
 
 int main() {
+    srand(time(nullptr));
     vector<string> names{"Alice", "Bob", "Charlie", "Dan"};
     Settlers game(names);
+    game.play();
     vector<char> info = {'a'};
     game.state(info);
 }

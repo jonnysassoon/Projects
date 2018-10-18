@@ -22,7 +22,6 @@ namespace Catan {
     class Settlers {
         struct Die {
             int roll() {
-                srand(time(nullptr));
                 int randomNum = rand();
                 number = (randomNum % 6) + 1;
                 return number;
@@ -31,7 +30,6 @@ namespace Catan {
         };
         struct EventDie : public Die {
             std::string roll() {
-                srand(time(nullptr));
                 int randomNum = rand();
                 int theRoll = (randomNum % 6) + 1;
                 if (theRoll <= 3) color = "black";

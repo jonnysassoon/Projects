@@ -131,11 +131,13 @@ namespace Catan {
     
     void Settlers::play() { // game engine
         /* Roll for first */
+        cout << "Now rolling to see who goes first\n";
         map<Player*, int> firstRoll;
         pair<Player*, int> goesFirst{nullptr, -1};
         int turnTickInit = 0;
         for (Player* player : players) { // If tie, the guy who rolled first wins... (I'm lazy)
             int roll = dice.roll();
+            cout << player->getName() << " rolled a " << roll << endl;
             firstRoll[player] = roll;
             if (roll > goesFirst.second) {
                 goesFirst.first = player;
@@ -150,18 +152,19 @@ namespace Catan {
             cout << player->getName() << "'s turn to build a settlement\nWhere do you want to build it?\n";
             int setLoc;
             cin >> setLoc;
-            while (!gameBoard.isValidSetLoc(setLoc, player)) {
+            while (!gameBoard.isValidSetLoc(setLoc, player, true)) {
                 cout << "That position is invalid, please choose again\nWhere do you want to build it?\n";
-                int setLoc;
                 cin >> setLoc;
             }
             buildSettlement(setLoc, player, true);
-            cout << "Where do you want to build the road?\n";
+            cout << "Where do you want to build the road? ( Options: ";
+            vector<int> posEdges = gameBoard.getAdjEdges(setLoc);
+            for (int id : posEdges) cout << id << ' ';
+            cout << ')';
             int roadLoc;
             cin >> roadLoc;
             while (!gameBoard.isValidFirstRoadLoc(roadLoc, setLoc)) {
                 cout << "That position is invalid, please choos again\nWhere do you want to build the road?\n";
-                int roadLoc;
                 cin >> roadLoc;
             }
             buildRoad(roadLoc, player, true);
@@ -173,22 +176,24 @@ namespace Catan {
             cout << player->getName() << "'s turn to build a city\nWhere do you want to build it?\n";
             int citLoc;
             cin >> citLoc;
-            while (!gameBoard.isValidSetLoc(citLoc, player)) { // on the first turn, a valid city is a valid settlement
+            while (!gameBoard.isValidSetLoc(citLoc, player, true)) { // on the first turn, a valid city is a valid settlement
                 cout << "That position is invalid, please choose again\nWhere do you want to build it?\n";
                 cin >> citLoc;
             }
             buildCity(citLoc, player, true); // includes giving player corresponding resources
-            cout << "Where do you want to build the road?\n";
+            cout << "Where do you want to build the road?( Options: ";
+            vector<int> posEdges = gameBoard.getAdjEdges(citLoc);
+            for (int id : posEdges) cout << id << ' ';
+            cout << ')';
             int roadLoc;
             cin >> roadLoc;
             while (!gameBoard.isValidFirstRoadLoc(roadLoc, citLoc)) {
-                cout << "That position is invalid, please choos again\nWhere do you want to build the road?\n";
+                cout << "That position is invalid, please choose again\nWhere do you want to build the road?\n";
                 cin >> roadLoc;
             }
             buildRoad(roadLoc, player, true);
         }
         leader = players[turnTicker]; // they're all tied, just make the first guy the leader
-        
         while (leader->getPoints() < 13) {
             turn();
             for (Player* player : players) player->resetCollected(); // set player->collected to false
