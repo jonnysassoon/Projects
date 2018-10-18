@@ -42,11 +42,13 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "Board.cpp"
-            timestampString = "545879258.638507"
+            timestampString = "561512000.8817641"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "117"
-            endingLineNumber = "117">
+            startingLineNumber = "142"
+            endingLineNumber = "142"
+            landmarkName = "Board::getRoadLength(Edge* edge)"
+            landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
@@ -70,12 +72,12 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "Player.cpp"
-            timestampString = "544411081.3951451"
+            timestampString = "561518880.407093"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "192"
-            endingLineNumber = "192"
-            landmarkName = "Player::deactivateKnight(int strength)"
+            startingLineNumber = "196"
+            endingLineNumber = "196"
+            landmarkName = "Player::activateKnight(int strength)"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
@@ -86,11 +88,25 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "Settlers.h"
-            timestampString = "545870188.116124"
+            timestampString = "561516577.152923"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "357"
-            endingLineNumber = "357">
+            startingLineNumber = "359"
+            endingLineNumber = "359">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "Player.cpp"
+            timestampString = "561512160.9932621"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "45"
+            endingLineNumber = "45">
          </BreakpointContent>
       </BreakpointProxy>
    </Breakpoints>

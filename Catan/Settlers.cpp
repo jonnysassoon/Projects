@@ -10,13 +10,10 @@
 using namespace std;
 
 namespace Catan {
-    Settlers::Settlers(const vector<string>& playerNames) : defense(0), robberInPlay(false), turnTicker(0), longestRoad({nullptr, 0}), metropoli({{"trade", {nullptr, -1}}, {"politics", {nullptr, -1}}, {"science", {nullptr, -1}}}) {
-        for (const string& name : playerNames) {
-            Player* player = new Player(name);
-            players.push_back(player);
-            strengthLeaders.push_back(player);
-        }
+    Settlers::Settlers(const vector<string>& playerNames) : defense(0), robberInPlay(false), turnTicker(0), longestRoad({nullptr, 4}), metropoli({{"trade", {nullptr, -1}}, {"politics", {nullptr, -1}}, {"science", {nullptr, -1}}}) {
+        for (const string& name : playerNames) players.push_back(new Player(name));
         leader = players[0]; // just so it's not nullptr to begin with
+        strengthLeaders.push_back(leader); // just to have someone in here
         // TODO: create the progress cards
     }
     Settlers::~Settlers() {
@@ -24,12 +21,112 @@ namespace Catan {
         // TODO: clear all collections
     }
     
+    vector<Player*> Settlers::getPlayers() const {
+        return players;
+    }
+    
     void Settlers::showBoard() const {
         gameBoard.display();
     }
     
-    void Settlers::state() const {
-        
+    void Settlers::state(const vector<char>& argv) const {
+        /*
+         a: all
+         g: general
+         p: all player info (call player.display())
+         s: settlements and cities (metropoli, city walls)
+         b: barbarians
+         k: knights (overall strength, locations)
+         */
+        for (size_t i = 0; i < argv.size(); i++) {
+            switch (argv[i]) {
+                case 'a':
+                    dispG();
+                    cout << endl;
+                    dispP();
+                    cout << endl;
+                    dispS();
+                    cout << endl;
+                    dispB();
+                    cout << endl;
+                    dispK();
+                    cout << endl;
+                    break;
+                case 'g':
+                    dispG();
+                    break;
+                case 'p':
+                    dispP();
+                    break;
+                case 's':
+                    dispS();
+                    break;
+                case 'b':
+                    dispB();
+                    break;
+                case 'k':
+                    dispK();
+                    break;
+            }
+            cout << endl;
+        }
+    }
+    
+    void Settlers::dispG() const{ // display general info
+        // (who's playing, whose turn, who's winning - how many points, longest road - length/player, robber position, others?)
+        cout << "---GENERAL INFO---\nThe players are: ";
+        for (Player* player : players) cout << player->getName() << ' ';
+        cout << endl << leader->getName() << " is currently in the lead with " << leader->getPoints() << " points\nThe longest road is currently held by ";
+        if (longestRoad.first == nullptr) cout << "no one";
+        else cout << longestRoad.first->getName() << " and is of length " << longestRoad.second;
+        cout << "\nThe robber is on tile number " << gameBoard.getRobberLoc() << "\nThe defender of Catan (knight strength = " << (*strengthLeaders.begin())->getKnightStrength() << ") is/are: ";
+        for (auto iter = strengthLeaders.begin(); iter != strengthLeaders.end(); iter++) {
+            if (iter != strengthLeaders.begin()) cout << ", ";
+            cout << (*iter)->getName();
+        }
+        if (canRaze.size() != 0) {
+            cout << "\nThe razeable cities are:";
+            for (auto iter = canRaze.begin(); iter != canRaze.end(); iter++) {
+                cout << "\n\tFor " << iter->first->getName() << ':';
+                if (iter->second.size() != 0){
+                    for (auto subIter = iter->second.begin(); subIter != iter->second.end(); subIter++) cout << "\n\t\t" << *subIter;
+                } else cout << " NONE";
+                cout << endl;
+            }
+        }
+        if (hasAqueduct.size() != 0) {
+            for (auto iter = hasAqueduct.begin(); iter != hasAqueduct.end(); iter++) {
+                if (iter != hasAqueduct.begin()) cout << ", ";
+                cout << (*iter)->getName();
+            }
+            cout << " has/have the special science ability";
+        }
+        cout << endl;
+    }
+    void Settlers::dispP() const{ // display player info
+        cout << "---PLAYER INFO---\n";
+        for (Player* player : players) player->display();
+    }
+    void Settlers::dispS() const{ // display settlement and city info
+        cout << "---SETTLEMENT AND CITY INFO---\n";
+        gameBoard.dispSetCit();
+    }
+    void Settlers::dispB() const{ // display barbarian info
+        cout << "---BARBARIAN INFO---\n";
+        cout << "The barbarians are currently " << barbarians.location << " steps into their journey.\nThey have a strength of " << barbarians.strength << endl;
+    }
+    void Settlers::dispK() const{ // display kight info
+        cout << "---KNIGHT INFO---\n";
+        cout << "The total knight strength from all players is: " << defense << "\nThe active knights on the board are at locations: ";
+        if (activeKnightLocs.size() > 0) {
+            for (auto iter = activeKnightLocs.begin(); iter != activeKnightLocs.end(); iter++){
+                int loc = iter->first;
+                int strength = gameBoard.getKnightLevel(loc);
+                Player* owner = iter->second;
+                cout << "\n\t" << loc << " - (owner: " << owner->getName() << "; strength: " << strength << ')';
+            }
+        } else cout << "NONE";
+        cout << endl;
     }
     
     void Settlers::play() { // game engine
@@ -292,9 +389,14 @@ namespace Catan {
         if (player->buildRoad(firstTurn)) {
             int roadLength = gameBoard.placeRoad(loc, player);
             cout << player->getName() << " builds a road on position " << loc << endl;
+            if (roadLength > player->getRoadLength()) {
+                player->setRoadLength(roadLength);
+                cout << player->getName() << " increased their road length to " << player->getRoadLength() << endl;
+            }
             if (roadLength > longestRoad.second) { // is this road longer than the current longest road?
                 longestRoad.second = roadLength;
                 if (player != longestRoad.first) { // the person with longest road is over taken
+                    cout << player->getName() << " overtook " << longestRoad.first->getName() << " for longest road\n";
                     longestRoad.first->removeLongestRoad();
                     player->giveLongestRoad();
                     longestRoad.first = player;
@@ -456,7 +558,7 @@ namespace Catan {
     }
     
     void Settlers::raze(Player* player) {
-        cout << "You're the weakest link, and are being razed. Choose the city you prefer to get razed.\n";
+        cout << "You're the weakest link and are being razed. Choose the city you prefer to get razed.\n";
         int cityLoc;
         cin >> cityLoc;
         while (!gameBoard.isOpenCityLoc(cityLoc, player)) {
@@ -497,6 +599,7 @@ namespace Catan {
                     set<Player*> defenders;
                     defenders.insert(strengthLeaders[0]);
                     int iter = 1;
+                    // get all players that have equal strength to the person defending the most
                     while (iter < players.size() &&
                            strengthLeaders[iter]->getKnightStrength() == (*defenders.begin())->getKnightStrength()) {
                         defenders.insert(strengthLeaders[iter]);

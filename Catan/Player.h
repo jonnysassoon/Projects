@@ -27,6 +27,8 @@ namespace Catan {
         int getHandSize() const;
         int getKnightStrength() const;
         int getCitImprovements(const std::string& type) const; // number of flips
+        int getRoadLength() const;
+        void setRoadLength(int len);
         bool hasAbility(const std::string& type) const; // does the player have a special ability from flips
         bool hasResource(const std::string& resource) const;
         bool collectedThisRound() const;
@@ -53,7 +55,7 @@ namespace Catan {
         int vp; // victory points
         int cap; // how many resources/commodities can they have
         int handSize; // number of resources in hand currently
-        int roadLength;
+        int roadLength; // length of player's longest road
         bool hasLongestRoad;
         int knightStrength;
         bool collected;

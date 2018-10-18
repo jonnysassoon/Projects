@@ -37,7 +37,10 @@ namespace Catan {
         citImprov({{"trade", 0}, {"politics", 0}, {"science", 0}}) {}
 
     void Player::display() const {
-        cout << "Player: " << name << "\n\tVictory points: " << vp << "\n\tHand size: " << handSize << "\n\tRoad length: " << roadLength << "\n\tKnight strength: " << knightStrength << endl;
+        cout << "Player: " << name << "\n\tVictory points: " << vp << "\n\tHand size: " << handSize << "\n\tPlayer's longest road is " << roadLength << " roads long and they " ;
+        if (hasLongestRoad) cout << "do ";
+        else cout << "do not ";
+        cout << "have longest road\n\tKnight strength: " << knightStrength << "\n\tPlayer has " << metropoli << " metropoli: "   << "\n\tPlayer has " << progCards.size() << " progress cards" << endl;
     }
     
     string Player::getName() const { return name; }
@@ -51,6 +54,10 @@ namespace Catan {
     int Player::getKnightStrength() const { return knightStrength; }
     
     int Player::getCitImprovements(const string& type) const { return citImprov.at(type); }
+    
+    int Player::getRoadLength() const { return roadLength; }
+    
+    void Player::setRoadLength(int len) { roadLength = len; }
     
     bool Player::hasAbility(const string& type) const { return citImprov.at(type) >= 3; }
     
@@ -116,7 +123,7 @@ namespace Catan {
     bool Player::buildCitImprove(const string& type) {
         int pastFlips = Player::getCitImprovements(type);
         if (pieces["city"] == 4 || // if he hasn't yet built a city...
-            (4 - pieces["city"] == metropoli // ...or he has a metropolis on all the cities he did built and...
+            (4 - pieces["city"] == metropoli // ...or he has a metropolis on all the cities he did built and yet...
              && pastFlips == 3) // ...he wants to do his fourth flip (which would give him another metropolis)
             ) return false;
         if (pastFlips == 5) return false; // maxed out on flips

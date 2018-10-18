@@ -8,6 +8,7 @@
 #ifndef Pieces_h
 #define Pieces_h
 #include <string>
+#include <iostream>
 
 namespace Catan {
     class Player;
@@ -47,6 +48,8 @@ namespace Catan {
         Player* owner;
         std::string resource;
      };
+    
+    std::ostream& operator<<(std::ostream& os, const Knight& rhs);
 }
 
 #endif /* Pieces_h */

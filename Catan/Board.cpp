@@ -10,7 +10,7 @@
 #include <algorithm> // shuffle
 #include <random> // random engine
 #include <chrono> // seed val
-#include <queue> // canMoveKnight()
+#include <queue> // canMoveKnight(), getRoadLength()
 using namespace std;
 
 namespace Catan{
@@ -66,6 +66,31 @@ namespace Catan{
         cout << "\n\nTILES MAP:\n";
         for(int tileNum = 1; tileNum <= total_tiles(); tileNum++){
             cout << tileNum << " - " << tiles_map.at(tileNum)->type << ":{" << *tiles_map.at(tileNum) << "}\n";
+        }
+    }
+    
+    void Board::dispSetCit() const {
+        for (auto iter = nodes_map.begin(); iter != nodes_map.end(); iter++) {
+            Node* node = iter->second;
+            if (node->settlement != nullptr ){
+                cout << "Settlement is located at position " << iter->first << " and is owned by " << node->owner->getName() << endl;
+            }
+            else if (node->city != nullptr) {
+                cout << "City is located at position " << iter->first << " and is owned by " << node->owner->getName();
+                if (node->city->metropolis != nullptr) {
+                    Metropolis* met = node->city->metropolis;
+                    cout << " and has the ";
+                    if (met->color == "green") {
+                        cout << " science ";
+                    } else if (met->color == "blue"){
+                        cout << " politics ";
+                    } else {
+                        cout << " trade ";
+                    }
+                    cout << "metropolis.";
+                }
+                cout << endl;
+            }
         }
     }
     
@@ -384,8 +409,8 @@ namespace Catan{
     void Board::link_nodes(int& edge_id, Node& node1, Node& node2){
         Edge* edge(new Edge(edge_id));
         edges_map[edge_id] = edge;
-        cout << "Now adding edge " << edge_id << " to nodes " << node1.int_id << " and " << node2.int_id << endl;
-        cout << "Edge address: " << edge << endl;
+//        cout << "Now adding edge " << edge_id << " to nodes " << node1.int_id << " and " << node2.int_id << endl;
+//        cout << "Edge address: " << edge << endl;
         node1.adj_nodes.insert(&node2);
         node1.adj_edges.insert(edge);
         edge->adj_nodes.insert(&node1);
@@ -447,7 +472,7 @@ namespace Catan{
         tile1.adj_tiles.emplace(&tile2);
         tile2.adj_tiles.emplace(&tile1);
     }
-    void Board::generate_tiles() {
+    void Board::generate_tiles() { // TODO: make give an option for random, default it to fixed.
         vector<int> num_tiles{2, 3, 3, 4, 4, 5, 5, 6, 6, 8, 8, 9, 9, 10, 10, 11, 11, 12};
         vector<TileType*> types{new Hill(), new Hill(), new Hill(), new Mountain(), new Mountain(), new Mountain(), new Forest(), new Forest(), new Forest(), new Forest(), new Field(),new Field(), new Field(), new Field(), new Pasture(), new Pasture(), new Pasture(), new Pasture(), new Desert()};
         unsigned seed = chrono::system_clock::now().time_since_epoch().count();
@@ -566,6 +591,7 @@ namespace Catan{
         adj_tiles.clear();
         adj_nodes.clear();
     }
+    
     ostream& operator<<(ostream& os, const Board::Node& rhs){
         os << rhs.int_id << ":[";
         int iter = 0;
@@ -581,7 +607,7 @@ namespace Catan{
             if (iter != rhs.adj_edges.size()-1) cout << ", ";
             iter++;
         }
-        cout << "]";
+        cout << ']';
         return os;
     }
     

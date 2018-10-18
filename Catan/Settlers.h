@@ -64,9 +64,11 @@ namespace Catan {
     public:
         Settlers(const std::vector<std::string>& playerNames);
         ~Settlers();
-        void showBoard() const;
-        void state() const;
+        void showBoard() const; //  just show the data map. might be unnecessary
+        
+        void state(const std::vector<char>& argv) const;
         void play(); // game engine
+        std::vector<Player*> getPlayers() const;;
     private:
         std::vector<Player*> players;
         std::stack<Progress*> scienceCards;
@@ -76,16 +78,22 @@ namespace Catan {
         Dice dice;
         BarbarianShip barbarians;
         bool robberInPlay;
-        int defense;
+        int defense; // total active knight strength on the board
         std::map<Player*, std::set<int>> canRaze;
         std::vector<Player*> strengthLeaders;
         std::set<Player*> hasAqueduct; // special science ability
         std::pair<Player*, int> longestRoad;
-        std::map<int, Player*> activeKnightLocs;
+        std::map<int, Player*> activeKnightLocs; // maybe I should also include non-active knights?
         std::set<int> actThisTurnLocs; // keep track of all the knights that were activated this turn. When the turn is over, reset them
         std::map<std::string, std::pair<Player*, int>> metropoli; // map the type to a tuple of the Player who has it along with the location of that city
         Player* leader;
         int turnTicker;
+        
+        void dispG() const; // display general info
+        void dispP() const; // display player info
+        void dispS() const; // display settlement and city info
+        void dispB() const; // display barbarian info
+        void dispK() const; // display kight info
         
         bool buildSettlement(int loc, Player* player, bool firstTurn = false);
         bool buildRoad(int loc, Player* player, bool firstTurn = false);
