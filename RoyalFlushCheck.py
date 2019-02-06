@@ -4,7 +4,7 @@ Program: Royal Flush
 This program simulates rounds of Texas HoldEm and continues to deal until
 a player lands a Royal Flush
 """
-from DataStructures.ArrayStack import ArrayStack
+from DataStructuresAndAlgorithms.DataStructures.ArrayStack import ArrayStack
 import random
 
 class Card:

@@ -29,24 +29,22 @@ namespace Catan{
     public:
         ConcentricGraph(int layers);
         int nodes_in_layer(int layer) const;
-        int total_nodes() const; // gets nodes
+        int total_nodes() const; // total number of nodes in entire graph
+        int total_nodes(int layer) const; // gets total number of nodes in the entire graph up to layer n
         int edges_in_layer(int layer) const;
         int total_edges() const; // gets edges
+        int total_edges(int layer) const;
         int tiles_in_layer(int layer) const;
         int total_tiles() const; // gets tiles
+        int total_tiles(int layer) const;
         int nodes_on_level(int level) const; // never used in Catan implementation
         int max_on_level() const;
         int levels_with_max() const;
         std::set<int> second_degree_nodes(int layer) const;
     private:
-        int nodes_helper(int n) const;
-        int edges_helper(int n) const;
-        int tiles_helper(int n) const;
+        
         int layers;
         int height;
-        int nodes;
-        int edges;
-        int tiles;
     };
 }
 

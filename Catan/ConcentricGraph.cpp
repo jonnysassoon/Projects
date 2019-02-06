@@ -11,19 +11,25 @@
 
 using namespace std;
 
-/* TODO: no need for helpers anymore. Change all total_x functions to their respective equations*/
+
+/*
+ TODO: Put the create_board method in here. When you start the game, the Concentric graph creates the underlying map that relates the numbers, and the Board will iterate through the map and create nodes/tiles/edges accordingly.
+ */
 
 namespace Catan{
-    ConcentricGraph::ConcentricGraph(int layers) : layers(layers), height(3+4*layers), nodes(nodes_helper(layers)), edges(edges_helper(layers)), tiles(tiles_helper(layers)) { }
+    ConcentricGraph::ConcentricGraph(int layers) : layers(layers), height(3+4*layers) {}
     int ConcentricGraph::nodes_in_layer(int layer) const { return 12 * layer + 6; }
-    int ConcentricGraph::total_nodes() const { return nodes; }
+    int ConcentricGraph::total_nodes() const { return 6*pow(layers, 2) + 12 *layers +6; } // 6n^2 + 12n +6
+    int ConcentricGraph::total_nodes(int layer) const { return 6*pow(layer, 2) + 12 * layer + 6; }
     int ConcentricGraph::edges_in_layer(int layer) const { return 18 * layer + 6; }
-    int ConcentricGraph::total_edges() const { return edges; }
+    int ConcentricGraph::total_edges() const {return 9*pow(layers, 2) + 15*layers + 6; } // 9n^2 +15n +6
+    int ConcentricGraph::total_edges(int layer) const { return 9*pow(layer, 2) + 15*layer + 6; }
     int ConcentricGraph::tiles_in_layer(int layer) const {
         if (layer == 0) return 1;
         return 6*layer;
     }
-    int ConcentricGraph::total_tiles() const { return tiles; }
+    int ConcentricGraph::total_tiles() const { return 3*pow(layers, 2) + 3*layers + 1; } // 3n^2 + 3n + 1
+    int ConcentricGraph::total_tiles(int layer) const { return 3*pow(layer, 2) + 3*layer + 1; }
     int ConcentricGraph::nodes_on_level(int level) const { // not sure i need this function
         if (level < 0 || level > height-1){ // out of bounds
             cerr << "Level not in range.\n";
@@ -38,7 +44,7 @@ namespace Catan{
         set<int> set;
         if (layer == 0) for (int val = 1; val < 7; val++) set.insert(val);
         else{
-            int start_node = nodes_helper(layer-1) + 1; // get the node after last node in previous ring, i.e. first node in this ring
+            int start_node = total_nodes(layer-1) + 1; // get the node after last node in previous ring, i.e. first node in this ring
             vector<int> group(layer, 2);
             group.push_back(1);
             for (int i = 0; i < group.size(); i++){
@@ -54,17 +60,5 @@ namespace Catan{
             }
         }
         return set;
-    }
-    int ConcentricGraph::nodes_helper(int n) const {
-        if (n == 0) return 6;
-        return nodes_helper(n-1) + 12*n+6;
-    }
-    int ConcentricGraph::edges_helper(int n) const {
-        if (n == 0) return 6;
-        return edges_helper(n-1) + 18*n + 6;
-    }
-    int ConcentricGraph::tiles_helper(int n) const {
-        if (n == 0) return 1;
-        return tiles_helper(n-1) + 6*n;
     }
 }

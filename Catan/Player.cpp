@@ -37,10 +37,12 @@ namespace Catan {
         citImprov({{"trade", 0}, {"politics", 0}, {"science", 0}}) {}
 
     void Player::display() const {
-        cout << "Player: " << name << "\n\tVictory points: " << vp << "\n\tHand size: " << handSize << "\n\tPlayer's longest road is " << roadLength << " roads long and they " ;
+        cout << "Player: " << name << "\n\tVictory points: " << vp << "\n\tResource hand size: " << handSize << endl;
+        showResources();
+        cout << "\n\tPlayer's longest road is " << roadLength << " roads long and they " ;
         if (hasLongestRoad) cout << "do ";
         else cout << "do not ";
-        cout << "have longest road\n\tKnight strength: " << knightStrength << "\n\tPlayer has " << metropoli << " metropoli: "   << "\n\tPlayer has " << progCards.size() << " progress cards" << endl;
+        cout << "have longest road\n\tKnight strength: " << knightStrength << "\n\tPlayer has " << metropoli << " metropoli: "   << "\n\tCity improvements:\n\t\ttrade:" << citImprov.at("trade") << "\n\t\tpolitics:" << citImprov.at("politics") <<"\n\t\tscience:" << citImprov.at("science") << "\n\tPlayer has " << progCards.size() << " progress cards" << endl;
     }
     
     string Player::getName() const { return name; }
@@ -76,9 +78,15 @@ namespace Catan {
         if (!firstTurn) { // if it is the first turn, it's free
             vector<string> necessary = {"sheep", "brick", "wheat", "wood"};
             for (const string& aRes : necessary) {
-                if (resources[aRes] < 1) return false;
+                if (resources[aRes] < 1) {
+                    cout << name << " is missing " << aRes << " and can't build a settlement.\n";
+                    return false;
+                }
             }
-            if (pieces["settlement"] < 1) return false;
+            if (pieces["settlement"] < 1) {
+                cout << name << " can't build a settlement because they do not have another settlement piece.\n";
+                return false;
+            }
             spend(necessary);
         }
         pieces["settlement"]--; // Note: if a player built 5 settlements, 1 city and gets razed, he loses the city but still is able to build a settlement. In such a case, pieces["settlements"] will be -1. This shouldn't cause gameplay error because he still won't be able to build another settlement, and once he upgrades some settlement to a city, pieces["settlement"] will accurately reflect that he has 0.
@@ -90,9 +98,15 @@ namespace Catan {
         if (!firstTurn) {
             vector<string> necessary = {"brick", "wood"};
             for (const string& aRes : necessary) {
-                if (resources[aRes] < 1) return false;
+                if (resources[aRes] < 1) {
+                    cout << name << " is missing " << aRes << " and can't build a road.\n";
+                    return false;
+                }
             }
-            if (pieces["road"] < 1) return false;
+            if (pieces["road"] < 1){
+                cout << name << " can't build a road because they do not have another road piece.\n";
+                return false;
+            }
             spend(necessary);
         }
         pieces["road"]--;
@@ -102,8 +116,18 @@ namespace Catan {
     bool Player::buildCity(bool firstTurn) {
         if (!firstTurn) {
             vector<string> necessary = {"wheat", "wheat", "ore", "ore", "ore"};
-            if (resources["ore"] < 3 || resources["wheat"] < 2) return false;
-            if (pieces["city"] < 1) return false;
+            if (resources["ore"] < 3 || resources["wheat"] < 2) {
+                cout << name << " does not have enough";
+                if (resources["ore"] < 3 && resources["wheat"] < 2) cout << " wheat and ore";
+                else if (resources["ore"] < 3) cout << " ore";
+                else if (resources["wheat"] < 2) cout << " wheat";
+                cout << " and can't build a city.\n";
+                return false;
+            }
+            if (pieces["city"] < 1) {
+                cout << name << " can't build a city because they do not have another city piece.\n";
+                return false;
+            }
             spend(necessary);
             pieces["settlement"]++;
             vp--; // take away a settlement
@@ -212,37 +236,6 @@ namespace Catan {
         return true;
     }
     
-//    bool Player::moveRobber() {
-//        int newLoc;
-//        cout << "Where would you like to move the robber to?\n";
-//        cin >>newLoc;
-//        if (newLoc == -1) return false; // code for "cancel"
-//        set<Player*> playersToRob;
-//        if (1 <= newLoc && newLoc <= 54 /*&& newLoc != previous robber location*/) {
-//            // go to the tiles map, set that tile to blocked = true
-//            // for node in that tiles adjacencies
-//                // if that node has a settlement or a city whose owner is not you
-//                    // playersToRob.add(that Player pointer)
-//        }
-//        if (playersToRob.size() != 0) {
-//            cout << "Players to rob:\n";
-//            for (Player* playerptr : playersToRob) {
-//                playerptr->display();
-//                cout << endl;
-//            }
-//            string playerName;
-//            cout << "Who would you like to rob?\n";
-//            cin >> playerName;
-//            for (Player* playerptr : playersToRob) { // assumes player have unique names. Necessary to change? maybe choose by color? (assign colors to players)
-//                if (playerptr->name == playerName) {
-//                    rob(playerptr);
-//                    return true;
-//                }
-//            }
-//        }
-//        return true;
-//    }
-    
     void Player::rob(Player* other) {
         vector<string> othersHand;
         // add resource names the number of times his resource library says he has that resource
@@ -261,7 +254,7 @@ namespace Catan {
         resources[resource]++;
         handSize++;
         collected = true;
-        cout << name << " collects a " << resource << endl;
+        cout << name << " collects: " << resource << endl;
     }
     
     void Player::defendCatan() { vp++; }
@@ -313,5 +306,11 @@ namespace Catan {
 //            (otherknight->owner).moveDisplaced(otherknight);
         // place the knight there
         return true;
+    }
+    
+    void Player::showResources() const {
+        for (auto iter = resources.begin(); iter != resources.end(); iter++) {
+            if (iter->second != 0) cout << '\t' << iter->first << ':' << iter->second << endl;
+        }
     }
 }

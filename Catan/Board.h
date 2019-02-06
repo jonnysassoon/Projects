@@ -7,15 +7,15 @@
 //
 // APPEARANCE OF CATAN BOARD WITH TILE-NUMBERING CONVENTION:
 //      _
-//    _/g\_
-//  _/h\_/f\_
-// /i\_/6\_/e\
-// \_/7\_/5\_/
-// /j\_/1\_/d\
+//    _/b\_
+//  _/a\_/c\_
+// /9\_/3\_/d\
 // \_/2\_/4\_/
-// /8\_/3\_/c\
-// \_/9\_/b\_/
-//   \_/a\_/
+// /8\_/1\_/e\
+// \_/7\_/5\_/
+// /j\_/6\_/f\
+// \_/i\_/g\_/
+//   \_/h\_/
 //     \_/
 // 
 // Numbers represent the tile IDs where a - j represent numbers 10 - 19. Node 1 is at the top left
@@ -40,10 +40,10 @@
 namespace Catan{
     
     struct TileType{
-        TileType(std::string name, std::string resource);
+        TileType(std::string name, std::string resource, std::string commodity = "");
         std::string name;
         std::string resource;
-        std::string commodity; // an empty string
+        std::string commodity;
     };
     
     struct Hill : public TileType {
@@ -60,7 +60,6 @@ namespace Catan{
     
     struct CommTile : public TileType {
         CommTile(std::string name, std::string resource, std::string commodity);
-        std::string commodity;
     };
     
     struct Mountain : public CommTile {
@@ -117,7 +116,7 @@ namespace Catan{
         friend std::ostream& operator<<(std::ostream& os, const Board::Tile& rhs);
     public:
         // The boolean methods answer the question: "Can this action theoretically be done?" i.e. "Does the state of the pieces on the board potentially allow this to happen"
-        Board(int layer = 2);
+        Board(int layer = 2, bool random = true);
         ~Board();
         void display() const;
         void dispSetCit() const;
@@ -152,11 +151,11 @@ namespace Catan{
         void removeSummonSickness(int loc);
         std::set<Player*> placeRobber(int newLoc); // returns a set of the players that can be robbed as a result of this action
     private:
-        void create_board();
-        void generate_tiles();
+        void create_board(bool random);
+        void generate_tiles(bool random = true);
         void link_tiles(Tile& tile1, Tile& tile2);
         void link_node_to_tile(Tile* thisTile, int node_id);
-        void give_num_tile(Tile* the_tile, std::vector<int>& tiles_vec);
+        void give_num_tile(Tile* the_tile, int num_tile);
         void log_tile(Tile* the_tile);
         void generate_nodes();
         void link_nodes(int& edge_id, Node& node1, Node& node2); // adds node1 to node2's adj_lst and vice versa

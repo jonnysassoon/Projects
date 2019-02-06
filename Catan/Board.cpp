@@ -11,11 +11,12 @@
 #include <random> // random engine
 #include <chrono> // seed val
 #include <queue> // canMoveKnight(), getRoadLength()
+#include <fstream> // generate_tiles()
 using namespace std;
 
 namespace Catan{
     
-    TileType::TileType(string name, string resource) : name(name), resource(resource) {}
+    TileType::TileType(string name, string resource, string commodity) : name(name), resource(resource), commodity(commodity) {}
     
     Hill::Hill() : TileType("hill", "brick") {}
     
@@ -23,7 +24,7 @@ namespace Catan{
     
     Desert::Desert() : TileType("desert", "") {}
     
-    CommTile::CommTile(string name, string resource, string commodity) : TileType(name, resource), commodity(commodity) {}
+    CommTile::CommTile(string name, string resource, string commodity) : TileType(name, resource, commodity) {}
     
     Mountain::Mountain() : CommTile("mountain", "ore", "coin") {}
     
@@ -32,8 +33,8 @@ namespace Catan{
     Pasture::Pasture() : CommTile("pasture", "sheep", "silk") {}
     
     
-    Board::Board(int layer) : ConcentricGraph(layer){
-        create_board();
+    Board::Board(int layer, bool random) : ConcentricGraph(layer){
+        create_board(random);
     }
     
     Board::~Board() {
@@ -66,7 +67,7 @@ namespace Catan{
         }
         cout << "\n\nTILES MAP:\n";
         for(int tileNum = 1; tileNum <= total_tiles(); tileNum++){
-            cout << tileNum << " - " << tiles_map.at(tileNum)->type << ":{" << *tiles_map.at(tileNum) << "}\n";
+            cout << tileNum << " - " << tiles_map.at(tileNum)->type << '(' << tiles_map.at(tileNum)->num_tile << ')' << ":{" << *tiles_map.at(tileNum) << "}\n";
         }
     }
     
@@ -96,17 +97,19 @@ namespace Catan{
     }
     
     void Board::distributeResources(int roll) const {
-        set<Tile*> tiles = num_tiles.at(roll); // this will only have stuff in it if a settlement/city was built on it
-        for (Tile* tile : tiles) {
-            if (!tile->blocked) {
-                for (Node* node : tile->adj_nodes) {
-                    if (node->owner != nullptr && node->knight == nullptr) { // if it's owned, but there's no knight (i.e. there's a settlement/city)
-                        node->owner->collectResource(tile->resource); // collect at least one
-                        if (node->city != nullptr) {
-                            if (tile->resource == "wheat" || tile->resource == "brick") {
-                                node->owner->collectResource(tile->resource);
-                            } else {
-                                node->owner->collectResource(tile->commodity);
+        if (num_tiles.find(roll) != num_tiles.end()) {
+            set<Tile*> tiles = num_tiles.at(roll); // this will only have stuff in it if a settlement/city was built on it
+            for (Tile* tile : tiles) {
+                if (!tile->blocked && tile->num_tile != -1) {
+                    for (Node* node : tile->adj_nodes) {
+                        if (node->owner != nullptr && node->knight == nullptr) { // if it's owned, but there's no knight (i.e. there's a settlement/city)
+                            node->owner->collectResource(tile->resource); // collect at least one
+                            if (node->city != nullptr) {
+                                if (tile->resource == "wheat" || tile->resource == "brick") {
+                                    node->owner->collectResource(tile->resource);
+                                } else {
+                                    node->owner->collectResource(tile->commodity);
+                                }
                             }
                         }
                     }
@@ -331,7 +334,7 @@ namespace Catan{
         node->settlement = settlement;
         node->owner = settlement->owner;
         for (Tile* tileptr : node->adj_tiles) {
-            num_tiles[tileptr->num_tile].emplace(tileptr); // include this tile in the set of tiles that its number maps to
+            if (tileptr->num_tile != -1) num_tiles[tileptr->num_tile].emplace(tileptr); // include this tile in the set of tiles that its number maps to
         }
     }
     
@@ -350,10 +353,12 @@ namespace Catan{
         node->owner = city->owner; // in case of first turn where owner isn't assigned. otherwise, this is redundant
         if (setUp) { // give player resources of neighboring hex tiles
             for (Tile* tileptr : node->adj_tiles) {
-                num_tiles[tileptr->num_tile].emplace(tileptr); // this is only necessary during setup, otherwise, you would  already have a settlement there, therefore it would be in the map.
+                if (tileptr->num_tile != -1) num_tiles[tileptr->num_tile].emplace(tileptr); // this is only necessary during setup, otherwise, you would already have a settlement there, therefore it would be in the map.
             }
             Player* player = city->owner;
-            for (Tile* tilptr : node->adj_tiles)player->collectResource(tilptr->resource);
+            for (Tile* tilptr : node->adj_tiles) {
+                if (tilptr->num_tile != -1) player->collectResource(tilptr->resource); // collect if it isn't the desert.
+            }
         }
     }
     
@@ -421,11 +426,11 @@ namespace Catan{
         return toRob;
     }
     
+    // TODO: move all algorithmic graph generation to Concententric graph
+    
     void Board::link_nodes(int& edge_id, Node& node1, Node& node2){
         Edge* edge(new Edge(edge_id));
         edges_map[edge_id] = edge;
-//        cout << "Now adding edge " << edge_id << " to nodes " << node1.int_id << " and " << node2.int_id << endl;
-//        cout << "Edge address: " << edge << endl;
         node1.adj_nodes.insert(&node2);
         node1.adj_edges.insert(edge);
         edge->adj_nodes.insert(&node1);
@@ -437,22 +442,45 @@ namespace Catan{
     
     // could I just do this recursively?
     void Board::generate_nodes(){ // keep track of all nodes according to their integer IDs
+        // read in from Nodes_Map.txt
+        // iterate over the file and create new nodes as you see them
+        ifstream ifs("/Users/jonathansassoon/Projects/Catan/node_build.txt");
+        if (!ifs) {
+            cerr << "Failed to open file.\n";
+            exit(1);
+        }
+        int node1, node2;
+        int edgeNum = 1;
+        while (ifs >> node1 >> node2) {
+            Node* node1ptr = nullptr;
+            Node* node2ptr = nullptr;
+            if (nodes_map.find(node1) == nodes_map.end()) { // have not created this node yet
+                node1ptr = new Node(node1);
+                nodes_map[node1] = node1ptr;
+            } else node1ptr = nodes_map.at(node1);
+            if (nodes_map.find(node2) == nodes_map.end()) { // have not created this node yet
+                node2ptr = new Node(node2);
+                nodes_map[node2] = node2ptr;
+            } else node2ptr = nodes_map.at(node2);
+            link_nodes(edgeNum, *node1ptr, *node2ptr);
+        }
+        ifs.close();
+        
+        /*
         int curr_layer = 0;
         int first_in_layer = 1;
-        int nodes_after_layer = 6;
         int two_deg_in_prev = 1; // keeps track of the current 2nd degree node from the previous layer that we will need to link to its corresponding third degree node in curr_layer
         set<int> degree_two_nodes = second_degree_nodes(0);
         Node* last_third_degree = nullptr;
         int previous_node = 1;
         int edge_id = 1;
-        for (int idNum = 1; idNum <= total_nodes(); idNum++){
+        for (int idNum = 1; idNum <= 54; idNum++){ // TODO: change exit condition to total_nodes()
             Node* thisNode = new Node(idNum);
             nodes_map.emplace(idNum, thisNode);
-            if (idNum == nodes_after_layer+1) { // we're in a new layer of the board, need to reset values
-                curr_layer += 1;
+            if (idNum == total_nodes(curr_layer)+1) { // we're in a new layer of the board, need to reset values
                 if (idNum != 7) two_deg_in_prev = first_in_layer + 1; // the first time we enter a new layer, we don't want to adjust two_deg_in_prev since its initialized for this case
-                first_in_layer = nodes_after_layer + 1;
-                nodes_after_layer += 12 * curr_layer + 6; // implicitly does recursive work for ConcetricGraph.total_nodes()
+                first_in_layer = total_nodes(curr_layer) + 1;
+                curr_layer += 1;
                 degree_two_nodes = second_degree_nodes(curr_layer);
                 last_third_degree = nullptr;
             }
@@ -460,7 +488,7 @@ namespace Catan{
                 link_nodes(edge_id, *thisNode, *nodes_map[previous_node]);
                 previous_node++;
             }
-            if (idNum == nodes_after_layer) link_nodes(edge_id, *thisNode, *nodes_map[first_in_layer]); // if at end of layer, conenct to first in layer
+            if (idNum == total_nodes(curr_layer)) link_nodes(edge_id, *thisNode, *nodes_map[first_in_layer]); // if at end of layer, conenct to first in layer
             if (degree_two_nodes.find(idNum) == degree_two_nodes.end() &&
                 idNum != first_in_layer) { // connect a third degree node that isn't the first node in the layer (it's already conencting to its proper node in previous layer) to its proper 2nd degree node in the previous layer
                 if (last_third_degree != nullptr) { // if it is nullptr, we didn't jump to get here
@@ -471,32 +499,73 @@ namespace Catan{
                 last_third_degree = thisNode;
             }
         }
+         */
     }
     void Board::link_node_to_tile(Tile* thisTile, int node_id) {
         Node* toAdd = nodes_map[node_id];
         thisTile->adj_nodes.emplace(toAdd);
         toAdd->adj_tiles.emplace(thisTile);
     }
-    void Board::give_num_tile(Tile* the_tile, vector<int>& numbers_vec) { // TODO: handle 8s and 6s
-        int num_tile = numbers_vec.back();
+    void Board::give_num_tile(Tile* the_tile, int num_tile) { // TODO: handle 8s and 6s
         the_tile->num_tile = num_tile;
-        numbers_vec.pop_back();
     }
     
     void Board::link_tiles(Tile& tile1, Tile& tile2) {
         tile1.adj_tiles.emplace(&tile2);
         tile2.adj_tiles.emplace(&tile1);
     }
-    void Board::generate_tiles() { // TODO: make give an option for random, default it to fixed.
-        vector<int> num_tiles{2, 3, 3, 4, 4, 5, 5, 6, 6, 8, 8, 9, 9, 10, 10, 11, 11, 12};
-        vector<TileType*> types{new Hill(), new Hill(), new Hill(), new Mountain(), new Mountain(), new Mountain(), new Forest(), new Forest(), new Forest(), new Forest(), new Field(),new Field(), new Field(), new Field(), new Pasture(), new Pasture(), new Pasture(), new Pasture(), new Desert()};
-        unsigned seed = chrono::system_clock::now().time_since_epoch().count();
-        shuffle(num_tiles.begin(), num_tiles.end(), default_random_engine(seed));
-        shuffle(types.begin(), types.end(), default_random_engine(seed));
+    void Board::generate_tiles(bool random) { // TODO implement randomness
+        if (!random) {
+            tiles_map = {
+                {1, new Tile(1, new Field())},
+                {2, new Tile(2, new Pasture())},
+                {3, new Tile(3, new Forest())},
+                {4, new Tile(4, new Mountain())},
+                {5, new Tile(5, new Hill())},
+                {6, new Tile(6, new Forest())},
+                {7, new Tile(7, new Pasture())},
+                {8, new Tile(8, new Field())},
+                {9, new Tile(9, new Mountain())},
+                {10, new Tile(10, new Hill())},
+                {11, new Tile(11, new Desert())},
+                {12, new Tile(12, new Hill())},
+                {13, new Tile(13, new Forest())},
+                {14, new Tile(14, new Pasture())},
+                {15, new Tile(15, new Field())},
+                {16, new Tile(16, new Pasture())},
+                {17, new Tile(17, new Field())},
+                {18, new Tile(18, new Mountain())},
+                {19, new Tile(19, new Forest())},
+            };
+            ifstream ifs("/Users/jonathansassoon/Projects/Catan/Tiles_Map.txt");
+            if (!ifs) {
+                cerr << "Failed to open file.\n";
+                exit(1);
+            }
+            int tile_id, node, number_of_tiles, dice_num, t_num;
+            string type;
+            while (ifs >> tile_id >> type >> dice_num) {
+                Tile* thisTile = tiles_map.at(tile_id);
+                give_num_tile(thisTile, dice_num);
+                for (int i = 0; i < 6; i++) {
+                    ifs >> node;
+                    link_node_to_tile(thisTile, node);
+                }
+                ifs >> number_of_tiles;
+                for (int i = 0; i < number_of_tiles; i++) {
+                    ifs >> t_num;
+                    Tile* other = tiles_map.at(t_num);
+                    link_tiles(*thisTile, *other);
+                }
+            }
+            ifs.close();
+        }
+        
+        /*
         // TODO: utilize the methods in ConcentricGraph to reduce the number of variables
         // TODO: is this over engineering? see if I can reduce the code...
         // TODO: see if I can make separate functions addNodesToTile/addTilestoTile that could compartmentalize this function and make it cleaner
-        /* Variables for Tile-Node links: */
+        Variables for Tile-Node links:
         int currLayer = 0;
         int lastNodeInCurr = 6; // TODO: should be able to use a ConcentricGraph method instead of variable. reference to last node in curent layer
         int firstNodeInCurr = 1; // TODO: should be able to use a ConcentricGraph method instead of variable. reference to first node in the current layer
@@ -507,17 +576,16 @@ namespace Catan{
         int nodeInCurr = 6; // node from this layer we want to add to the tile
         int setCounter = 0; // keeps track of your "location" in the set which perscribes how many nodes you should add to the tile from each layer
         
-        /* Variables for Tile-Tile links: */
+        Variables for Tile-Tile links:
         int prevTile = 0;
         int inPrevLayer = 0; // tile we are trying to add from the previous layer
         int connectionTicker = 0; // keeps track of where you are relative to a corner tile
         
         for (int tile_id = 1; tile_id < total_tiles() + 1; tile_id++){
-            TileType* used = types.back();
-            Tile* thisTile = new Tile(tile_id , used);
-            delete used; // we don't used the pointer, we just wanted to copy its initial info
-            types.pop_back();
-            if (thisTile->type != "desert") give_num_tile(thisTile, num_tiles); // give it a number if it isn't desert hex
+            pair<TileType*, int> dat = tile_type[tile_id];
+            Tile* thisTile = new Tile(tile_id, dat.first);
+            
+            if (thisTile->type != "desert") give_num_tile(thisTile, dat.second); // give it a number if it isn't desert hex
             else {
                 thisTile->blocked = true; // just for consistency, doesn't make a difference
                 robberLoc = tile_id;
@@ -538,7 +606,7 @@ namespace Catan{
             if (tile_id == 1) {
                 for (int i = 1; i < 7; i++) link_node_to_tile(thisTile, i);
             } else{
-                /* Tile - Node component */
+                Tile - Node component
                 for (int i = 0; i < 2; i++) { // every tile has >= 3 nodes from n-1 in their adj_nodes. for two of these, we need to decrement nodeInCurr
                     link_node_to_tile(thisTile, nodeInCurr);
                     nodeInCurr--;
@@ -558,7 +626,7 @@ namespace Catan{
                     link_node_to_tile(thisTile, nodeInPrev);
                 }
                 setCounter++;
-                /* Tile - Tile component */
+                 Tile - Tile component
                 if (tile_id != firstTileInCurr) link_tiles(*thisTile, *tiles_map[prevTile]); // you don't do this if it's the first in curr because it isn't adjacent to the previous tile (8 does not border 7, etc.), it's equivalent "previous" tile is the inPrevLayer tile (8 links to 2)
                 link_tiles(*thisTile, *tiles_map[inPrevLayer]);
                 if (connectionTicker % 2 != 0){
@@ -577,11 +645,12 @@ namespace Catan{
             prevTile = tile_id;
             tiles_map[tile_id] = thisTile; // log the tile we just worked on
         }
+        */
     }
     
-    void Board::create_board() {
+    void Board::create_board(bool random) {
         generate_nodes();
-        generate_tiles();
+        generate_tiles(random);
     }
     
     Board::Node::Node(int int_id) : int_id(int_id), owner(nullptr), knight(nullptr), settlement(nullptr), city(nullptr) {}

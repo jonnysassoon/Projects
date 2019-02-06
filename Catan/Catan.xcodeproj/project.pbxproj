@@ -30,6 +30,8 @@
 
 /* Begin PBXFileReference section */
 		4724D1D42075B2AE004F3DFC /* Settlers.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Settlers.h; sourceTree = SOURCE_ROOT; };
+		4736EBAF219921FA008E6DB6 /* node_build.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = node_build.txt; sourceTree = SOURCE_ROOT; };
+		4736EBB021992675008E6DB6 /* Tiles_Map.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = Tiles_Map.txt; sourceTree = SOURCE_ROOT; };
 		47480D0620083A3E008E4B54 /* Pieces.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Pieces.h; sourceTree = SOURCE_ROOT; };
 		47480D0720083B58008E4B54 /* Player.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Player.h; sourceTree = SOURCE_ROOT; };
 		47480D0820083BBA008E4B54 /* Card.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Card.h; sourceTree = SOURCE_ROOT; };
@@ -80,6 +82,8 @@
 				4724D1D42075B2AE004F3DFC /* Settlers.h */,
 				4755AD84208121F200D00C58 /* Settlers.cpp */,
 				47BDD5151FCCA00500EF3B07 /* Board.cpp */,
+				4736EBAF219921FA008E6DB6 /* node_build.txt */,
+				4736EBB021992675008E6DB6 /* Tiles_Map.txt */,
 				47BDD51C1FCCBC6B00EF3B07 /* Board.h */,
 				47BDD5181FCCB89100EF3B07 /* ConcentricGraph.h */,
 				47BDD5191FCCB94200EF3B07 /* ConcentricGraph.cpp */,

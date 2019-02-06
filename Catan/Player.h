@@ -69,6 +69,7 @@ namespace Catan {
         void spend(const std::vector<std::string>& spending);
         bool moveKnight(Knight* theKnight);
         bool moveDisplaced(Knight* theKnight);
+        void showResources() const;
     };
 }
 

@@ -60,10 +60,9 @@ namespace Catan {
             int strength = 0;
         };
     public:
-        Settlers(const std::vector<std::string>& playerNames);
+        Settlers(const std::vector<std::string>& playerNames, int layers = 2, bool randomSetup = true);
         ~Settlers();
         void showBoard() const; //  just show the data map. might be unnecessary
-        
         void state(const std::vector<char>& argv) const;
         void play(); // game engine
         std::vector<Player*> getPlayers() const;;

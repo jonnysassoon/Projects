@@ -10,7 +10,7 @@
 using namespace std;
 
 namespace Catan {
-    Settlers::Settlers(const vector<string>& playerNames) : defense(0), robberInPlay(false), turnTicker(0), longestRoad({nullptr, 4}), metropoli({{"trade", {nullptr, -1}}, {"politics", {nullptr, -1}}, {"science", {nullptr, -1}}}) {
+    Settlers::Settlers(const vector<string>& playerNames, int layers, bool randomSetup) : gameBoard(Board(layers, randomSetup)), defense(0), robberInPlay(false), turnTicker(0), longestRoad({nullptr, 4}), metropoli({{"trade", {nullptr, -1}}, {"politics", {nullptr, -1}}, {"science", {nullptr, -1}}}) {
         for (const string& name : playerNames) players.push_back(new Player(name));
         leader = players[0]; // just so it's not nullptr to begin with
         strengthLeaders.push_back(leader); // just to have someone in here
@@ -113,7 +113,7 @@ namespace Catan {
     }
     void Settlers::dispB() const{ // display barbarian info
         cout << "---BARBARIAN INFO---\n";
-        cout << "The barbarians are currently " << barbarians.location << " steps into their journey.\nThey have a strength of " << barbarians.strength << endl;
+        cout << "The barbarians are currently " << barbarians.location << " step(s) into their journey.\nThey have a strength of " << barbarians.strength << endl;
     }
     void Settlers::dispK() const{ // display kight info
         cout << "---KNIGHT INFO---\n";
@@ -137,7 +137,7 @@ namespace Catan {
         int turnTickInit = 0;
         for (Player* player : players) { // If tie, the guy who rolled first wins... (I'm lazy)
             int roll = dice.roll();
-            cout << player->getName() << " rolled a " << roll << endl;
+            cout << player->getName() << " rolled: " << roll << endl;
             firstRoll[player] = roll;
             if (roll > goesFirst.second) {
                 goesFirst.first = player;
@@ -160,7 +160,7 @@ namespace Catan {
             cout << "Where do you want to build the road? ( Options: ";
             vector<int> posEdges = gameBoard.getAdjEdges(setLoc);
             for (int id : posEdges) cout << id << ' ';
-            cout << ')';
+            cout << ")\n";
             int roadLoc;
             cin >> roadLoc;
             while (!gameBoard.isValidFirstRoadLoc(roadLoc, setLoc)) {
@@ -181,7 +181,7 @@ namespace Catan {
                 cin >> citLoc;
             }
             buildCity(citLoc, player, true); // includes giving player corresponding resources
-            cout << "Where do you want to build the road?( Options: ";
+            cout << "Where do you want to build the road? ( Options: ";
             vector<int> posEdges = gameBoard.getAdjEdges(citLoc);
             for (int id : posEdges) cout << id << ' ';
             cout << ')';
@@ -366,7 +366,7 @@ namespace Catan {
                             buildMetropolis(type, loc, thePlayer);
                         }
                     }
-                }
+                } else if (type != "cancel") cout << "You do not have the commodities to improve " << type << ".\n";
             }
             if (thePlayer->getPoints() > leader->getPoints()) leader = thePlayer;
             cout << "Would you like to keep building?\n";
@@ -563,12 +563,11 @@ namespace Catan {
     }
     
     void Settlers::raze(Player* player) {
-        cout << "You're the weakest link and are being razed. Choose the city you prefer to get razed.\n";
+        cout << player->getName() << " is the weakest link and is being razed. Choose the city you prefer to get razed.\n";
         int cityLoc;
         cin >> cityLoc;
         while (!gameBoard.isOpenCityLoc(cityLoc, player)) {
             cout << "That's an invalid place to raze.\nChoose the city you prefer to get razed.\n";
-            int cityLoc;
             cin >> cityLoc;
         }
         player->destroyCity();
@@ -662,7 +661,8 @@ namespace Catan {
             if (player->getHandSize() > player->getCapacity()) {
                 cout << player->getName() << " has to discard " << player->getHandSize()/2 << " cards\n";
                 string resource;
-                for (int i = 0; i < player->getHandSize()/2; i++) {
+                int toDiscard = player->getHandSize()/2;
+                for (int i = 0; i < toDiscard; i++) { // TODO: add a display hand option
                     cout << "Choose a resource or commodity you'd like to discard\n";
                     cin >> resource;
                     while (!player->hasResource(resource)) {
@@ -698,7 +698,7 @@ namespace Catan {
     void Settlers::turn() {
         Player* thePlayer = players[turnTicker];
         cout << thePlayer->getName() << "'s turn!\n";
-        cout << "Would you like to roll or play an alchemist? (roll/alchemist)n";
+        cout << "Would you like to roll or play an alchemist? (roll/alchemist)\n"; // TODO: account for alchemist
         string decision;
         cin >> decision;
         int roll;
@@ -722,6 +722,7 @@ namespace Catan {
             roll = red + yellow;
             dice.event.roll();
         }
+        cout << roll << " was rolled. The red die is " << dice.red.number << ", and the event die is " << dice.event.color <<endl;
         resolveEvent(dice.event.color, dice.red.number);
         resolveRoll(roll);
         string action;
@@ -729,6 +730,29 @@ namespace Catan {
         cin >> action;
         while (action != "end") {
             // include actions like "viewGameState"/"viewPlayerState"...etc
+            // check barbarian
+            // view game state
+            if (action == "state") {
+                vector<char> argv;
+                char arg;
+                cout << "What do you want to check? ('a' = all, 'g' = general, 'p' = all player info, 's' = settlements and cities, 'b' = barbarians, 'k' = knights).\n";
+                cin >> arg;
+                argv.push_back(arg);
+                if (arg != 'a') {
+                    char resp;
+                    cout << "Is that all? (y/n)\n";
+                    cin >> resp;
+                    while (resp != 'y') {
+                        cout << "What do you want to check? ('a' = all, 'g' = general, 'p' = all player info, 's' = settlements and cities, 'b' = barbarians, 'k' = knights).\n";
+                        cin >> arg;
+                        argv.push_back(arg);
+                        cout << "Is that all? (y/n)\n";
+                        cin >> resp;
+                    }
+                }
+                state(argv);
+            }
+            if (action == "view") thePlayer->display();
             if (action == "build") buildActions();
             if (action == "deactivate") {
                 int loc;
@@ -804,7 +828,7 @@ namespace Catan {
         // road
         // knight
         // wall
-        // CitImprove // if it's science, check if he has the ability, if he does, add him to the set
+        // CitImprove (if it's science, check if he has the ability, if he does, add him to the set)
         // upgrade
         // deactivate knight
         // trade
